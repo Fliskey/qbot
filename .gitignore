@@ -40,3 +40,6 @@ build/
 
 ### VS Code ###
 .vscode/
+src/main/java/com/bot/qspring/FastGenerator.java
+qbot-server.txt
+src/main/resources/application.yaml
