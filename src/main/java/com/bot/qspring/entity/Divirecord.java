@@ -37,6 +37,8 @@ public class Divirecord implements Serializable {
 
     private Timestamp diviTime;
 
+    private String diviRanking;
+
     private String lastLevel;
 
     private String lastGood;

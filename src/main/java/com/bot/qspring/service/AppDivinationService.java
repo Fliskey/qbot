@@ -251,10 +251,8 @@ public class AppDivinationService {
         if(divigrouprecord.getNum() == 1){
             achievementService.wonAchieve(12L, vo.getUser_id(), vo.getGroup_id());
         }
-        builder
-                .append("\n今日您是本群第【")
-                .append(divigrouprecord.getNum())
-                .append("】位求签者\n");
+        String ranking = "今日您是本群第【" + divigrouprecord.getNum() + "】位求签者";
+        divirecord.setDiviRanking(ranking);
         divirecord.setLastText(builder.toString());
         return divirecord;
     }
@@ -275,7 +273,11 @@ public class AppDivinationService {
             record.setCumulate(1);
             record.setDiviGroup(vo.getGroup_id());
             divirecord = record;
-            builder.append(record.getLastText());
+            builder
+                    .append(record.getLastText())
+                    .append("\n")
+                    .append(record.getDiviRanking())
+                    .append("\n");
             divirecordService.save(record);
         }
         else{
