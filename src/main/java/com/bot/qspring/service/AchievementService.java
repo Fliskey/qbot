@@ -111,12 +111,11 @@ public class AchievementService {
 
     private String getCongratulations(Long achieveId, Long userId, Long groupId){
         StringBuilder builder = new StringBuilder();
-        builder.append("获得成就:");
         Achievement achievement = achievementMapper.selectById(achieveId);
         builder
                 .append("【")
                 .append(achievement.getAchieveName())
-                .append("】\n")
+                .append("】")
                 .append(achievement.getDetail())
                 .append("\n");
         //senderService.sendGroup(userId, groupId, builder.toString());
@@ -138,16 +137,16 @@ public class AchievementService {
     public String wonAchieve(Long achieveId, Long userId, Long groupId){
         Achievement achievement = achievementMapper.selectById(achieveId);
         StringBuilder builder = new StringBuilder();
+        Map<String, Object> map = new HashMap<>();
+        map.put("user_id",userId);
+        map.put("achievement_id",achieveId);
+        List<AchieveRecord> achieveRecords = achieveRecordMapper.selectByMap(map);
         if(achievement.getFirstWon() == null){
             achievement.setFirstWon(userId);
             achievementMapper.updateById(achievement);
             builder.append(getFirstCongratulation(achieveId, userId, groupId));
             builder.append(wonAchieve(8L, userId, groupId));    //凡是第一个获得某个成就都会获得南波湾成就
         }
-        Map<String, Object> map = new HashMap<>();
-        map.put("user_id",userId);
-        map.put("achievement_id",achieveId);
-        List<AchieveRecord> achieveRecords = achieveRecordMapper.selectByMap(map);
         if(achieveRecords.size() == 0){
             AchieveRecord achieveRecord = new AchieveRecord();
             achieveRecord.setUserId(userId);
@@ -155,6 +154,9 @@ public class AchievementService {
             achieveRecord.setWonDate(LocalDate.now());
             achieveRecordMapper.insert(achieveRecord);
             builder.append(getCongratulations(achieveId,userId,groupId));
+        }
+        else{
+            return "";
         }
         return builder.toString();
     }

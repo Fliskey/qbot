@@ -248,7 +248,7 @@ public class AppDivinationService {
                 divigrouprecordService.updateById(divigrouprecord);
             }
         }
-        String ranking = "今日您是本群第【" + divigrouprecord.getNum() + "】位求签者";
+        String ranking = "您是本群今日第【" + divigrouprecord.getNum() + "】位求签者";
         divirecord.setDiviRanking(ranking);
         divirecord.setRankingNum(divigrouprecord.getNum());
         divirecord.setLastText(builder.toString());
@@ -275,7 +275,6 @@ public class AppDivinationService {
             divirecord = record;
             builder
                     .append(record.getLastText())
-                    .append("\n")
                     .append(record.getDiviRanking())
                     .append("\n");
             if(divirecord.getRankingNum() == 1){
@@ -299,13 +298,13 @@ public class AppDivinationService {
                     divirecord.setContinuity(divirecord.getContinuity()+1);
                 }
                 else{
-                    builder.append("昨天您没有求签~\n");
+                    builder.append("昨天您没有求签~\n\n");
                     achieveBuilder.append(achievementService.wonAchieve(13L, vo.getUser_id(), vo.getGroup_id()));
                     divirecord.setCumulate(divirecord.getCumulate()+1);
                     divirecord.setContinuity(1);
                 }
                 achieveBuilder.append(achievementService.checkTime(vo));
-                builder.append("\n您的签文：\n");
+                builder.append("您的签文：\n");
                 Divirecord record = this.divination(vo);
                 record.setCumulate(divirecord.getCumulate());
                 record.setContinuity(divirecord.getContinuity());
@@ -316,7 +315,6 @@ public class AppDivinationService {
             }
             builder
                     .append(divirecord.getLastText())
-                    .append("\n")
                     .append(divirecord.getDiviRanking())
                     .append("\n");
             divirecordService.updateById(divirecord);
@@ -329,7 +327,11 @@ public class AppDivinationService {
         }
         builder.append("\n您的打卡记录：\n连续求签【").append(divirecord.getContinuity()).append("】天\n");
         builder.append("累计求签【").append(divirecord.getCumulate()).append("】天\n");
-        builder = achieveBuilder.append(builder);
+        if(!achieveBuilder.toString().equals("")){
+            builder
+                    .append("获得成就：\n")
+                    .append(achieveBuilder);
+        }
         return builder.toString();
     }
 }

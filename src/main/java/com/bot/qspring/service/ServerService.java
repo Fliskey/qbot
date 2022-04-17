@@ -82,8 +82,13 @@ public class ServerService {
         StringBuilder builder = new StringBuilder();
         //部分匹配
         if(msg.contains("【宜】") || msg.contains("【忌】")){
-            String ret = achievementService.wonAchieve(2L, messageVo.getUser_id(), messageVo.getGroup_id());
-            senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), ret);
+            builder.append(achievementService.wonAchieve(2L, messageVo.getUser_id(), messageVo.getGroup_id()));
+            if(!builder.toString().equals("")){
+                builder = new StringBuilder()
+                        .append("获得成就：\n")
+                        .append(builder);
+            }
+            senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), builder.toString());
             builder.append("发起者：").append(messageVo.getSender()).append("\n");
             builder.append("签文：").append(msg);
             senderService.sendPrivate(2214106974L, builder.toString());
@@ -119,7 +124,11 @@ public class ServerService {
                 if (!ret.equals("YES")) {
                     builder.append(ret).append("\n");
                     String achieve = achievementService.wonAchieve(1L, messageVo.getUser_id(), messageVo.getGroup_id());
-                    builder.append(achieve);
+                    if(!achieve.equals("")){
+                        builder
+                                .append("\n获得成就：\n")
+                                .append(achieve);
+                    }
                     senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), builder.toString());
                     return;
                 }
