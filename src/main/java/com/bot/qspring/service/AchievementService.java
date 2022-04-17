@@ -30,7 +30,8 @@ public class AchievementService {
     @Autowired
     SenderService senderService;
 
-    public void checkTime(MessageVo vo){
+    public String checkTime(MessageVo vo){
+        StringBuilder builder = new StringBuilder();
         LocalDateTime now = LocalDateTime.now();
         switch (now.getHour()){
             case 0:
@@ -39,7 +40,7 @@ public class AchievementService {
             case 3:
             case 4:
             case 5:
-                wonAchieve(14L, vo.getUser_id(),vo.getGroup_id());
+                builder.append(wonAchieve(14L, vo.getUser_id(),vo.getGroup_id()));
                 break;
             case 6:
             case 7:
@@ -47,7 +48,7 @@ public class AchievementService {
             case 9:
             case 10:
             case 11:
-                wonAchieve(15L, vo.getUser_id(),vo.getGroup_id());
+                builder.append(wonAchieve(15L, vo.getUser_id(),vo.getGroup_id()));
                 break;
             case 12:
             case 13:
@@ -55,7 +56,7 @@ public class AchievementService {
             case 15:
             case 16:
             case 17:
-                wonAchieve(16L, vo.getUser_id(),vo.getGroup_id());
+                builder.append(wonAchieve(16L, vo.getUser_id(),vo.getGroup_id()));
                 break;
             case 18:
             case 19:
@@ -63,17 +64,18 @@ public class AchievementService {
             case 21:
             case 22:
             case 23:
-                wonAchieve(17L, vo.getUser_id(),vo.getGroup_id());
+                builder.append(wonAchieve(17L, vo.getUser_id(),vo.getGroup_id()));
                 break;
         }
         Map<String, Object> map = new HashMap<>();
         for(long i = 14L; i <= 17; i += 1){
             map.put("achievement_id", i);
             if(achieveRecordMapper.selectByMap(map).size() == 0){
-                return;
+                return builder.toString();
             }
         }
-        wonAchieve(18L, vo.getUser_id(), vo.getGroup_id());
+        builder.append(wonAchieve(18L, vo.getUser_id(), vo.getGroup_id()));
+        return builder.toString();
     }
 
     public String getAllAchieve(Long userId){
@@ -107,7 +109,7 @@ public class AchievementService {
         }
     }
 
-    private void sendCongratulations(Long achieveId, Long userId, Long groupId){
+    private String getCongratulations(Long achieveId, Long userId, Long groupId){
         StringBuilder builder = new StringBuilder();
         builder.append("获得成就:");
         Achievement achievement = achievementMapper.selectById(achieveId);
@@ -115,11 +117,13 @@ public class AchievementService {
                 .append("【")
                 .append(achievement.getAchieveName())
                 .append("】\n")
-                .append(achievement.getDetail());
-        senderService.sendGroup(userId, groupId, builder.toString());
+                .append(achievement.getDetail())
+                .append("\n");
+        //senderService.sendGroup(userId, groupId, builder.toString());
+        return builder.toString();
     }
 
-    public void sendFirstCongratulation(Long achieveId, Long userId, Long groupId){
+    public String getFirstCongratulation(Long achieveId, Long userId, Long groupId){
         StringBuilder builder = new StringBuilder();
         Achievement achievement = achievementMapper.selectById(achieveId);
         builder
@@ -127,17 +131,18 @@ public class AchievementService {
                 .append("【")
                 .append(achievement.getAchieveName())
                 .append("】")
-                .append("成就的首位获得者！");
-        senderService.sendGroup(userId, groupId, builder.toString());
+                .append("成就的首位获得者！\n");
+        return builder.toString();
     }
 
-    public void wonAchieve(Long achieveId, Long userId, Long groupId){
+    public String wonAchieve(Long achieveId, Long userId, Long groupId){
         Achievement achievement = achievementMapper.selectById(achieveId);
+        StringBuilder builder = new StringBuilder();
         if(achievement.getFirstWon() == null){
             achievement.setFirstWon(userId);
             achievementMapper.updateById(achievement);
-            wonAchieve(8L, userId, groupId);    //凡是第一个获得某个成就都会获得南波湾成就
-            sendFirstCongratulation(achieveId, userId, groupId);
+            builder.append(getFirstCongratulation(achieveId, userId, groupId));
+            builder.append(wonAchieve(8L, userId, groupId));    //凡是第一个获得某个成就都会获得南波湾成就
         }
         Map<String, Object> map = new HashMap<>();
         map.put("user_id",userId);
@@ -149,8 +154,9 @@ public class AchievementService {
             achieveRecord.setAchievementId(Math.toIntExact(achieveId));
             achieveRecord.setWonDate(LocalDate.now());
             achieveRecordMapper.insert(achieveRecord);
-            sendCongratulations(achieveId,userId,groupId);
+            builder.append(getCongratulations(achieveId,userId,groupId));
         }
+        return builder.toString();
     }
 
 }

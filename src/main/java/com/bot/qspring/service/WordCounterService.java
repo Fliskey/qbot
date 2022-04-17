@@ -32,7 +32,7 @@ public class WordCounterService {
         return duration.toMinutesPart() + "分" + duration.toSecondsPart() + "秒";
     }
 
-    public int checkWordCounter(MessageVo vo){
+    public String checkWordCounter(MessageVo vo){
         //禁言临界条数
         int edge = 5;
 
@@ -56,8 +56,7 @@ public class WordCounterService {
                         .append("等")
                         .append(getFreeTime(wordcounter.getStopUntil()))
                         .append("以后换个关键词来找我！！");
-                senderService.sendGroup(vo.getUser_id(), vo.getGroup_id(), builder.toString());
-                return -1;
+                return builder.toString();
             }
             else{
                 //未封禁或过封禁，今天
@@ -71,9 +70,8 @@ public class WordCounterService {
                     }
                     wordcounterService.updateById(wordcounter);
                     if(wordcounter.getCounter() == edge - 2){
-                        senderService.sendGroup(vo.getUser_id(), vo.getGroup_id(),
-                                "注意，你已用“"+wordcounter.getWord()+"”连续叫我"+(edge - 2)+"次了，不可以调戏本bot！");
-                        return -1;
+                        String ret ="注意，你已用“"+wordcounter.getWord()+"”连续叫我"+(edge - 2)+"次了，不可以调戏本bot！";
+                        return ret;
                     }
                     else if(wordcounter.getCounter() >= edge - 1){
                         StringBuilder builder = new StringBuilder();
@@ -103,8 +101,7 @@ public class WordCounterService {
                                 builder.append("喵喵喵喵喵喵喵喵喵喵喵喵");
                                 break;
                         }
-                        senderService.sendGroup(vo.getUser_id(), vo.getGroup_id(), builder.toString());
-                        return -1;
+                        return builder.toString();
                     }
                     /*else if(wordcounter.getCounter() >= edge){
                         //封禁
@@ -120,7 +117,7 @@ public class WordCounterService {
                         return 0;
                     }*/
                     else{
-                        return 1;
+                        return "YES";
                     }
                 }
             }
@@ -129,6 +126,6 @@ public class WordCounterService {
         wordcounter.setCounter(1);
         wordcounter.setDate(today);
         wordcounterService.updateById(wordcounter);
-        return 1;
+        return "YES";
     }
 }

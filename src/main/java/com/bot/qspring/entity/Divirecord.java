@@ -25,6 +25,8 @@ public class Divirecord implements Serializable {
 
       private Long Id;
 
+    private Integer rankingNum;
+
     private LocalDate lastTime;
 
     private Integer cumulate;

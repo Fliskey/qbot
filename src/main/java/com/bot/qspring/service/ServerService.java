@@ -45,7 +45,8 @@ public class ServerService {
                     case "poke":
                         //拍一拍
                         if(messageVo.getSelf_id().equals(messageVo.getTarget_id())){
-                            achievementService.wonAchieve(7L, messageVo.getUser_id(), messageVo.getGroup_id());
+                            String ret = achievementService.wonAchieve(7L, messageVo.getUser_id(), messageVo.getGroup_id());
+                            senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), ret);
                         }
                         break;
                     case "approve":
@@ -81,7 +82,8 @@ public class ServerService {
         StringBuilder builder = new StringBuilder();
         //部分匹配
         if(msg.contains("【宜】") || msg.contains("【忌】")){
-            achievementService.wonAchieve(2L, messageVo.getUser_id(), messageVo.getGroup_id());
+            String ret = achievementService.wonAchieve(2L, messageVo.getUser_id(), messageVo.getGroup_id());
+            senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), ret);
             builder.append("发起者：").append(messageVo.getSender()).append("\n");
             builder.append("签文：").append(msg);
             senderService.sendPrivate(2214106974L, builder.toString());
@@ -95,6 +97,9 @@ public class ServerService {
         }
         else if(msg.startsWith("取消报名")){
             builder.append(appPartyService.cancelSignUpParty(messageVo));
+        }
+        else if(msg.contains("github") && msg.contains("bot")){
+            builder.append("https://github.com/Fliskey/qbot");
         }
 
         //全词匹配前确认Builder是否有需要发送的内容
@@ -110,14 +115,13 @@ public class ServerService {
             case "求签排名":
             case "求签":
             case "成就":
-                switch (wordCounterService.checkWordCounter(messageVo)){
-                    case -1:
-                        achievementService.wonAchieve(1L, messageVo.getUser_id(), messageVo.getGroup_id());
-                        return;
-                    case 0:
-                        achievementService.wonAchieve(10L, messageVo.getUser_id(), messageVo.getGroup_id());
-                        return;
-                    default:
+                String ret = wordCounterService.checkWordCounter(messageVo);
+                if (!ret.equals("YES")) {
+                    builder.append(ret).append("\n");
+                    String achieve = achievementService.wonAchieve(1L, messageVo.getUser_id(), messageVo.getGroup_id());
+                    builder.append(achieve);
+                    senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), builder.toString());
+                    return;
                 }
         }
         switch (msg) {
@@ -134,7 +138,6 @@ public class ServerService {
                 break;
             }
             case "求签": {
-                achievementService.wonAchieve(9L, messageVo.getUser_id(), messageVo.getGroup_id());
                 builder.append(appDivinationService.beginDivination(messageVo));
                 break;
             }
@@ -142,9 +145,7 @@ public class ServerService {
                 return;
             }
         }
-        achievementService.checkTime(messageVo);
         senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), builder.toString());
-
     }
 
 

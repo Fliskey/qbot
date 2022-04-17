@@ -248,23 +248,23 @@ public class AppDivinationService {
                 divigrouprecordService.updateById(divigrouprecord);
             }
         }
-        if(divigrouprecord.getNum() == 1){
-            achievementService.wonAchieve(12L, vo.getUser_id(), vo.getGroup_id());
-        }
         String ranking = "今日您是本群第【" + divigrouprecord.getNum() + "】位求签者";
         divirecord.setDiviRanking(ranking);
+        divirecord.setRankingNum(divigrouprecord.getNum());
         divirecord.setLastText(builder.toString());
         return divirecord;
     }
 
     public String beginDivination(MessageVo vo){
         StringBuilder builder = new StringBuilder();
+        StringBuilder achieveBuilder = new StringBuilder();
         Long user_id = vo.getUser_id();
         LocalDate today = LocalDate.now();
         Divirecord divirecord = divirecordService.getById(user_id);
         if(divirecord == null){
             builder.append("您是第一次打卡！\n");
-            achievementService.wonAchieve(9L, vo.getUser_id(), vo.getGroup_id());
+            achieveBuilder.append(achievementService.wonAchieve(9L, vo.getUser_id(), vo.getGroup_id()));
+            achieveBuilder.append(achievementService.checkTime(vo));
             builder.append("\n您的签文：\n");
             Divirecord record = this.divination(vo);
             record.setId(user_id);
@@ -278,6 +278,9 @@ public class AppDivinationService {
                     .append("\n")
                     .append(record.getDiviRanking())
                     .append("\n");
+            if(divirecord.getRankingNum() == 1){
+                achieveBuilder.append(achievementService.wonAchieve(12L, vo.getUser_id(), vo.getGroup_id()));
+            }
             divirecordService.save(record);
         }
         else{
@@ -297,10 +300,11 @@ public class AppDivinationService {
                 }
                 else{
                     builder.append("昨天您没有求签~\n");
-                    achievementService.wonAchieve(13L, vo.getUser_id(), vo.getGroup_id());
+                    achieveBuilder.append(achievementService.wonAchieve(13L, vo.getUser_id(), vo.getGroup_id()));
                     divirecord.setCumulate(divirecord.getCumulate()+1);
                     divirecord.setContinuity(1);
                 }
+                achieveBuilder.append(achievementService.checkTime(vo));
                 builder.append("\n您的签文：\n");
                 Divirecord record = this.divination(vo);
                 record.setCumulate(divirecord.getCumulate());
@@ -310,14 +314,22 @@ public class AppDivinationService {
                 record.setDiviGroup(vo.getGroup_id());
                 divirecord = record;
             }
-            builder.append(divirecord.getLastText());
+            builder
+                    .append(divirecord.getLastText())
+                    .append("\n")
+                    .append(divirecord.getDiviRanking())
+                    .append("\n");
             divirecordService.updateById(divirecord);
+            if(divirecord.getRankingNum() == 1){
+                achieveBuilder.append(achievementService.wonAchieve(12L, vo.getUser_id(), vo.getGroup_id()));
+            }
         }
         if(divirecord.getContinuity() >= 7){
-            achievementService.wonAchieve(11L, vo.getUser_id(), vo.getGroup_id());
+            achieveBuilder.append(achievementService.wonAchieve(11L, vo.getUser_id(), vo.getGroup_id()));
         }
         builder.append("\n您的打卡记录：\n连续求签【").append(divirecord.getContinuity()).append("】天\n");
         builder.append("累计求签【").append(divirecord.getCumulate()).append("】天\n");
+        builder = achieveBuilder.append(builder);
         return builder.toString();
     }
 }
