@@ -87,8 +87,8 @@ public class ServerService {
                 builder = new StringBuilder()
                         .append("获得成就：\n")
                         .append(builder);
+                senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), builder.toString());
             }
-            senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), builder.toString());
             builder.append("发起者：").append(messageVo.getSender()).append("\n");
             builder.append("签文：").append(msg);
             senderService.sendPrivate(2214106974L, builder.toString());
