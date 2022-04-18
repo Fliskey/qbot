@@ -291,6 +291,9 @@ public class AppDivinationService {
                     builder.append("今天您已求过签!\n");
                 }
                 builder.append("\n您的签文：\n");
+                builder
+                        .append(divirecord.getLastText())
+                        .append("\n");
             }
             else{
                 if(divirecord.getLastTime().plus(1, ChronoUnit.DAYS).equals(today)){
@@ -312,11 +315,12 @@ public class AppDivinationService {
                 record.setId(divirecord.getId());
                 record.setDiviGroup(vo.getGroup_id());
                 divirecord = record;
+                builder
+                        .append(divirecord.getLastText())
+                        .append(divirecord.getDiviRanking())
+                        .append("\n");
             }
-            builder
-                    .append(divirecord.getLastText())
-                    .append(divirecord.getDiviRanking())
-                    .append("\n");
+
             divirecordService.updateById(divirecord);
             if(divirecord.getRankingNum() == 1){
                 achieveBuilder.append(achievementService.wonAchieve(12L, vo.getUser_id(), vo.getGroup_id()));
