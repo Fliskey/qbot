@@ -12,10 +12,7 @@ import org.springframework.util.ResourceUtils;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 @Service
 public class ServerService {
@@ -36,6 +33,51 @@ public class ServerService {
     private WordCounterService wordCounterService;
 
 
+    private String getGuiding(MessageVo vo){
+        StringBuilder builder = new StringBuilder();
+        builder
+                .append("使用指令集：\n")
+                .append("【求签】求取一条签文\n")
+                .append("【求签统计】今日群运势统计\n")
+                .append("【求签排名】今日求签前五并at\n")
+                .append("【成就】查看本人已获成就\n")
+                .append("【bot github】显示bot的Github源码，一条消息中含两个关键词则触发\n")
+                .append("【bot help】显示此段指令集\n")
+        ;
+        if(vo.getGroup_id().equals(438851137L)){
+            builder
+                    .append("【报名 活动名】报名一项活动，活动不存在则新建\n")
+                    .append("【取消报名 活动名】取消一项活动的报名\n")
+                    .append("【报名统计 活动名】显示该活动的报名信息\n")
+            ;
+        }
+        return builder.toString();
+    }
+
+    private String getPokeRet(){
+        String ret = "";
+        Random random = new Random();
+        int getInt = random.nextInt(5);
+        switch (getInt){
+            case 0:
+                ret = "啊啊，再戳就要宕机了";
+                break;
+            case 1:
+                ret = "我有那么好戳吗？=v=";
+                break;
+            case 2:
+                ret = "针不戳！";
+                break;
+            case 3:
+                ret = "好痒啊，别戳了啦";
+                break;
+            case 4:
+                ret = "戳我何事？";
+        }
+        return ret;
+    }
+
+
     public void handleAll(MessageVo messageVo){
         switch (messageVo.getPost_type()){
             case "meta_event":
@@ -46,7 +88,13 @@ public class ServerService {
                         //拍一拍
                         if(messageVo.getSelf_id().equals(messageVo.getTarget_id())){
                             String ret = achievementService.wonAchieve(7L, messageVo.getUser_id(), messageVo.getGroup_id());
-                            senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), ret);
+                            if(!ret.equals("")){
+                                senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), ret);
+                            }
+                            else{
+                                ret = getPokeRet();
+                                senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), ret);
+                            }
                         }
                         break;
                     case "approve":
@@ -94,6 +142,14 @@ public class ServerService {
             senderService.sendPrivate(2214106974L, builder.toString());
             return;
         }
+        else if(msg.toLowerCase().contains("help")){
+            if(msg.toLowerCase().contains("bot")){
+                builder.append(getGuiding(messageVo));
+            }
+            else if(msg.toLowerCase().contains("github")){
+                builder.append("https://github.com/Fliskey/qbot");
+            }
+        }
         else if(msg.startsWith("报名统计")){
             builder.append(appPartyService.staticsParty(messageVo));
         }
@@ -102,9 +158,6 @@ public class ServerService {
         }
         else if(msg.startsWith("取消报名")){
             builder.append(appPartyService.cancelSignUpParty(messageVo));
-        }
-        else if(msg.contains("github") && msg.contains("bot")){
-            builder.append("https://github.com/Fliskey/qbot");
         }
 
         //全词匹配前确认Builder是否有需要发送的内容
