@@ -12,6 +12,7 @@ import com.bot.qspring.service.dbauto.PartysignupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -53,26 +54,31 @@ public class AppPartyService {
             return "本群中未找到报名名为【"+partyName+"】的同学哦~";
         }
         StringBuilder builder = new StringBuilder();
-        List<Bookxmusmyz> bookxmusmyzs = toBookList(partysignups);
         builder.append("报名了【"+partyName+"】活动的同学有：\n");
-        for(Bookxmusmyz fellow : bookxmusmyzs){
-            builder
-                    .append(fellow.getGrade())
-                    .append("级")
-                    .append(fellow.getCollege())
-                    .append(" ")
-                    .append(fellow.getName())
-                    .append("\n");
+        if(vo.getGroup_id().equals(438851137L)){
+            List<Bookxmusmyz> bookxmusmyzs = toBookList(partysignups);
+            for(Bookxmusmyz fellow : bookxmusmyzs){
+                builder
+                        .append(fellow.getGrade())
+                        .append("级")
+                        .append(fellow.getCollege())
+                        .append(" ")
+                        .append(fellow.getName())
+                        .append("\n");
+            }
         }
-        builder.append("共有【"+bookxmusmyzs.size()+"】名同学参加\n");
+        else{
+            partysignups.sort(Comparator.comparing(Partysignup::getCard));
+            for(Partysignup partysignup : partysignups){
+                builder.append(partysignup.getCard()).append("\n");
+            }
+        }
+        builder.append("共有【"+partysignups.size()+"】名同学参加\n");
         return builder.toString();
     }
 
     public String noticeParty(MessageVo vo){
         String msg = vo.getMessage();
-        if(vo.getUser_id() != 2214106974L){
-            return "仅管理员可通知";
-        }
         String[] msgList = msg.split(" ");
         if(msgList.length <= 1){
             return "格式错误";
@@ -82,7 +88,7 @@ public class AppPartyService {
         map.put("party_name", partyName);
         List<Party> partyList = partyMapper.selectByMap(map);
         if(partyList.size() == 0){
-            return "无此聚会:"+partyName;
+            return "无此聚会："+partyName;
         }
         Integer partyId = partyList.get(0).getId();
         map.clear();
@@ -93,10 +99,18 @@ public class AppPartyService {
         }
         else{
             StringBuilder builder = new StringBuilder();
-            builder.append("已at报名了【"+partyName+"】的同学:");
-            List<Bookxmusmyz> bookxmusmyzs = toBookList(partysignups);
-            for(Bookxmusmyz fellow: bookxmusmyzs){
-                builder.append("\n[CQ:at,qq=" + fellow.getId() + "]");
+            builder.append("已at报名了【"+partyName+"】的同学：");
+            if(vo.getGroup_id().equals(438851137L)){
+                List<Bookxmusmyz> bookxmusmyzs = toBookList(partysignups);
+                for(Bookxmusmyz fellow: bookxmusmyzs){
+                    builder.append("\n[CQ:at,qq=" + fellow.getId() + "]");
+                }
+            }
+            else{
+                partysignups.sort(Comparator.comparing(Partysignup::getCard));
+                for(Partysignup partysignup: partysignups){
+                    builder.append("\n[CQ:at,qq=" + partysignup.getUserId() + "]");
+                }
             }
             return builder.toString();
         }
@@ -143,6 +157,8 @@ public class AppPartyService {
             partysignup.setSignUpGroup(vo.getGroup_id());
             partysignup.setPartyId(partyId);
             partysignup.setUserId(vo.getUser_id());
+            partysignup.setCard(vo.getSender().getCard());
+            partysignup.setSignUpTime(LocalDateTime.now());
             partysignupService.save(partysignup);
             return "您已成功报名【" + partyName + "】！";
         }

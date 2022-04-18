@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author root
@@ -33,6 +33,8 @@ public class Partysignup implements Serializable {
     private Long signUpGroup;
 
     private LocalDateTime signUpTime;
+
+    private String card;
 
 
 }

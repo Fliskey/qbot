@@ -35,21 +35,21 @@ public class ServerService {
 
     private String getGuiding(MessageVo vo){
         StringBuilder builder = new StringBuilder();
-        builder
-                .append("使用指令集：\n")
-                .append("【求签】求取一条签文\n")
-                .append("【求签统计】今日群运势统计\n")
-                .append("【求签排名】今日求签前五并at\n")
-                .append("【成就】查看本人已获成就\n")
-                .append("【bot github】显示bot的Github源码，一条消息中含两个关键词则触发\n")
-                .append("【bot help】显示此段指令集\n")
-        ;
-        if(vo.getGroup_id().equals(438851137L)){
+        String[] msgList = vo.getMessage().split(" ");
+        //目前命令较少，未来可做分页
+        if(msgList.length == 2 || msgList[2].equals("1")){
             builder
+                    .append("可使用指令集：\n")
+                    .append("【求签】求取一条签文\n")
+                    .append("【求签统计】今日群运势统计\n")
+                    .append("【求签排名】今日求签前五并at\n")
+                    .append("【成就】查看本人已获成就\n")
+                    .append("【bot github】显示bot的Github源码，包含即触发\n")
+                    .append("【bot help】显示此段指令集，包含即触发\n")
                     .append("【报名 活动名】报名一项活动，活动不存在则新建\n")
-                    .append("【取消报名 活动名】取消一项活动的报名\n")
-                    .append("【报名统计 活动名】显示该活动的报名信息\n")
-            ;
+                    .append("【取消报名 活动名】取消活动报名\n")
+                    .append("【报名统计 活动名】显示该活动所有报名者\n")
+                    .append("【报名通知 活动名】一键at报名该活动的成员\n");
         }
         return builder.toString();
     }
@@ -89,6 +89,7 @@ public class ServerService {
                         if(messageVo.getSelf_id().equals(messageVo.getTarget_id())){
                             String ret = achievementService.wonAchieve(7L, messageVo.getUser_id(), messageVo.getGroup_id());
                             if(!ret.equals("")){
+                                ret = "获得成就：\n" + ret;
                                 senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), ret);
                             }
                             else{
@@ -142,16 +143,19 @@ public class ServerService {
             senderService.sendPrivate(2214106974L, builder.toString());
             return;
         }
-        else if(msg.toLowerCase().contains("help")){
-            if(msg.toLowerCase().contains("bot")){
-                builder.append(getGuiding(messageVo));
-            }
-            else if(msg.toLowerCase().contains("github")){
+        else if(msg.toLowerCase().startsWith("bot help")){
+            builder.append(getGuiding(messageVo));
+        }
+        else if(msg.toLowerCase().contains("bot")){
+            if(msg.toLowerCase().contains("github")){
                 builder.append("https://github.com/Fliskey/qbot");
             }
         }
         else if(msg.startsWith("报名统计")){
             builder.append(appPartyService.staticsParty(messageVo));
+        }
+        else if(msg.startsWith("报名通知")){
+            builder.append(appPartyService.noticeParty(messageVo));
         }
         else if(msg.startsWith("报名")){
             builder.append(appPartyService.signUpParty(messageVo));
@@ -159,6 +163,7 @@ public class ServerService {
         else if(msg.startsWith("取消报名")){
             builder.append(appPartyService.cancelSignUpParty(messageVo));
         }
+
 
         //全词匹配前确认Builder是否有需要发送的内容
         if(!builder.toString().equals("")){
