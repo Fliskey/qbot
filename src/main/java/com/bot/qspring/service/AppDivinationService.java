@@ -35,6 +35,37 @@ public class AppDivinationService {
     @Autowired
     private AchievementService achievementService;
 
+    @Autowired
+    private SenderService senderService;
+
+    public String getDiviRecord(MessageVo vo){
+        Divirecord divirecord = new Divirecord();
+        divirecord = divirecordService.getById(vo.getUser_id());
+        if(divirecord == null){
+            return "您好像没有求过签，在有bot的群中发送“求签”即可求取签文~";
+        }
+        else{
+            StringBuilder builder = new StringBuilder();
+            if(divirecord.getLastTime().equals(LocalDate.now())){
+                Long diviGroup = divirecord.getDiviGroup();
+                Integer diviGroupNum = divirecord.getRankingNum();
+                if(diviGroup == null || diviGroupNum == null){
+                    SenderService senderService = new SenderService();
+                    senderService.sendPrivate(2214106974L, divirecord.toString());
+                    return "啊哦，系统出错了";
+                }
+                String groupName = senderService.getGroupName(diviGroup);
+                builder.append("您今天在【"+groupName+"】群求签\n");
+                builder.append("今日签文为：\n");
+                builder.append(divirecord.getLastText());
+                return builder.toString();
+            }
+            else{
+                return "您今天还没有求签哦\n去任意一个有bot在的群求个签吧~";
+            }
+        }
+    }
+
     public String groupRanking(MessageVo vo){
         StringBuilder builder = new StringBuilder();
         Map<String, Object> map = new HashMap<>();
@@ -292,8 +323,7 @@ public class AppDivinationService {
                 }
                 builder.append("\n您的签文：\n");
                 builder
-                        .append(divirecord.getLastText())
-                        .append("\n");
+                        .append(divirecord.getLastText());
             }
             else{
                 if(divirecord.getLastTime().plus(1, ChronoUnit.DAYS).equals(today)){

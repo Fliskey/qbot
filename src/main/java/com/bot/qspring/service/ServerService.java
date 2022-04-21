@@ -54,6 +54,18 @@ public class ServerService {
         return builder.toString();
     }
 
+    private String getPrivateGuiding(){
+        StringBuilder builder = new StringBuilder();
+        builder
+                .append("私聊可使用指令集：\n")
+                .append("【成就】查看本人已获成就\n")
+                .append("【今日签文】查看今日签文\n")
+                .append("【github】显示bot的Github源码，包含即触发\n")
+                .append("【help】显示此段指令集，包含即触发\n")
+                .append("更多功能请前往群内使用~");
+        return builder.toString();
+    }
+
     private String getPokeRet(){
         String ret = "";
         Random random = new Random();
@@ -120,6 +132,42 @@ public class ServerService {
     }
 
     public void handlePrivate(MessageVo messageVo){
+        String msg = messageVo.getMessage();
+        System.out.println(msg);
+        StringBuilder builder = new StringBuilder();
+        if(msg.contains("【宜】") || msg.contains("【忌】")){
+            builder.append(achievementService.wonAchieve(2L, messageVo.getUser_id(), messageVo.getGroup_id()));
+            if(!builder.toString().equals("")){
+                builder = new StringBuilder()
+                        .append("获得成就：\n")
+                        .append(builder);
+                senderService.sendPrivate(messageVo.getUser_id(), builder.toString());
+            }
+            builder.append("发起者：").append(messageVo.getSender()).append("\n");
+            builder.append("签文：").append(msg);
+            senderService.sendPrivate(2214106974L, builder.toString());
+            return;
+        }
+        else if(msg.toLowerCase().contains("help")){
+            builder.append(getPrivateGuiding());
+        }
+        else if(msg.toLowerCase().contains("github")){
+            builder.append("https://github.com/Fliskey/qbot");
+        }
+        if(!builder.toString().equals("")){
+            wordCounterService.checkWordCounter(messageVo);
+            senderService.sendPrivate(messageVo.getUser_id(), builder.toString());
+            return;
+        }
+
+        if (msg.equals("成就")) {
+            builder.append(achievementService.getAllAchieve(messageVo.getUser_id()));
+        }
+        else if(msg.equals("今日签文")){
+            builder.append(appDivinationService.getDiviRecord(messageVo));
+        }
+
+        senderService.sendPrivate(messageVo.getUser_id(), builder.toString());
 
     }
 
@@ -163,6 +211,9 @@ public class ServerService {
         else if(msg.startsWith("取消报名")){
             builder.append(appPartyService.cancelSignUpParty(messageVo));
         }
+//        else if(msg.startsWith("群名")){
+//            builder.append(senderService.getGroupName(messageVo.getGroup_id()));
+//        }
 
 
         //全词匹配前确认Builder是否有需要发送的内容
