@@ -68,8 +68,10 @@ public class AchievementService {
                 break;
         }
         Map<String, Object> map = new HashMap<>();
-        for(long i = 14L; i <= 17; i += 1){
+        for(Long i = 14L; i <= 17L; i = i + 1L){
+            map.clear();
             map.put("achievement_id", i);
+            map.put("user_id",vo.getUser_id());
             if(achieveRecordMapper.selectByMap(map).size() == 0){
                 return builder.toString();
             }
