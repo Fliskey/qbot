@@ -38,6 +38,18 @@ public class AppDivinationService {
     @Autowired
     private SenderService senderService;
 
+    public String getMemeFrom(MessageVo vo){
+        String msg = vo.getMessage();
+        List<Divination> list = divinationDao.getDiviHasMeme();
+        for(Divination divi : list){
+            String meme = divi.getKey();
+            if(msg.contains(meme)){
+                return divi.getMemeFrom();
+            }
+        }
+        return "";
+    }
+
     public String getDiviRecord(MessageVo vo){
         Divirecord divirecord = new Divirecord();
         divirecord = divirecordService.getById(vo.getUser_id());
@@ -129,6 +141,39 @@ public class AppDivinationService {
                 .append(df.format(avgScore - Math.floor(avgScore)))
                 .append("\n");
 
+        return builder.toString();
+    }
+
+    public String groupBadStatics(MessageVo vo){
+        StringBuilder builder = new StringBuilder();
+        Map<String, Object> map = new HashMap<>();
+        map.put("last_time", LocalDate.now());
+        map.put("divi_group",vo.getGroup_id());
+        List<Divirecord> divirecords = divirecordMapper.selectByMap(map);
+        int[] levelNum = new int[5];
+        int score = 0;
+        String[] levels = new String[]{"大凶", "小凶"};
+        for(var record : divirecords){
+            String level = record.getLastLevel();
+            for(int i = 0; i < 2; i++){
+                if(level.equals(levels[i])){
+                    levelNum[i]++;
+                    break;
+                }
+            }
+        }
+        builder.append("【本群凶签统计】\n");
+        builder.append("共打卡【"+divirecords.size()+"】位\n");
+        for(int i = 0; i < 2; i++){
+            builder
+                    .append(levels[i])
+                    .append("：")
+                    .append(levelNum[i])
+                    .append("位\n");
+        }
+        DecimalFormat df = new DecimalFormat("0.00");
+        String takes = df.format((double)(levelNum[0]+levelNum[1])/(double)divirecords.size()*100);
+        builder.append("凶签共占"+takes+"%");
         return builder.toString();
     }
 

@@ -43,6 +43,7 @@ public class ServerService {
                     .append("【求签】求取一条签文\n")
                     .append("【求签统计】今日群运势统计\n")
                     .append("【求签排名】今日求签前五并at\n")
+                    .append("【xxx什么梗】查看某梗来源（仅支持冷门梗）\n")
                     .append("【成就】查看本人已获成就\n")
                     .append("【bot github】显示bot的Github源码，包含即触发\n")
                     .append("【bot help】显示此段指令集，包含即触发\n")
@@ -214,7 +215,9 @@ public class ServerService {
 //        else if(msg.startsWith("群名")){
 //            builder.append(senderService.getGroupName(messageVo.getGroup_id()));
 //        }
-
+        else if(msg.contains("什么梗")){
+            builder.append(appDivinationService.getMemeFrom(messageVo));
+        }
 
         //全词匹配前确认Builder是否有需要发送的内容
         if(!builder.toString().equals("")){
@@ -253,6 +256,10 @@ public class ServerService {
             }
             case "求签排名": {
                 builder.append(appDivinationService.groupRanking(messageVo));
+                break;
+            }
+            case "求签统寄":{
+                builder.append(appDivinationService.groupBadStatics(messageVo));
                 break;
             }
             case "求签": {

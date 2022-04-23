@@ -36,6 +36,7 @@ public class SenderService {
     private String toUrl(String msg){
         return msg
                 .trim()
+                .replace("%","%25")
                 .replace("\r\n","%0A")
                 .replace("\n","%0A")
                 .replace("\r","%0A")

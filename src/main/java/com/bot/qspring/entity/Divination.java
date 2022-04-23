@@ -26,6 +26,10 @@ public class Divination implements Serializable {
 
     private String content;
 
+    private String key;
+
+    private String memeFrom;
+
     private Integer conflict;
 
     private Long onlyUser;
