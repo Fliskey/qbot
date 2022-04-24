@@ -32,6 +32,9 @@ public class ServerService {
     @Autowired
     private WordCounterService wordCounterService;
 
+    @Autowired
+    private AdminService adminService;
+
 
     private String getGuiding(MessageVo vo){
         StringBuilder builder = new StringBuilder();
@@ -155,8 +158,13 @@ public class ServerService {
         else if(msg.toLowerCase().contains("github")){
             builder.append("https://github.com/Fliskey/qbot");
         }
+        else if(msg.startsWith("admin")){
+            builder.append(adminService.handleAdminAll(messageVo));
+        }
         if(!builder.toString().equals("")){
-            wordCounterService.checkWordCounter(messageVo);
+            if(!msg.startsWith("admin") && msg.length() < 20){
+                wordCounterService.checkWordCounter(messageVo);
+            }
             senderService.sendPrivate(messageVo.getUser_id(), builder.toString());
             return;
         }
@@ -168,8 +176,8 @@ public class ServerService {
             builder.append(appDivinationService.getDiviRecord(messageVo));
         }
 
-        senderService.sendPrivate(messageVo.getUser_id(), builder.toString());
 
+        senderService.sendPrivate(messageVo.getUser_id(), builder.toString());
     }
 
 

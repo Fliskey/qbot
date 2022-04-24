@@ -1,4 +1,4 @@
-package com.bot.qspring.controller;
+package com.bot.qspring.controller.dbAuto;
 
 
 import org.springframework.web.bind.annotation.RequestMapping;

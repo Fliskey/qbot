@@ -143,7 +143,7 @@ public class AchievementService {
         map.put("user_id",userId);
         map.put("achievement_id",achieveId);
         List<AchieveRecord> achieveRecords = achieveRecordMapper.selectByMap(map);
-        if(achievement.getFirstWon() == null){
+        if(achievement.getFirstWon() == null && achievement.getIsCustom() == null){
             achievement.setFirstWon(userId);
             achievementMapper.updateById(achievement);
             builder.append(getFirstCongratulation(achieveId, userId, groupId));

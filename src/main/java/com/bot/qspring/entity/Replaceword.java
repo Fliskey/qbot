@@ -1,5 +1,6 @@
 package com.bot.qspring.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.io.Serializable;
@@ -8,27 +9,25 @@ import lombok.EqualsAndHashCode;
 
 /**
  * <p>
- *
+ * 
  * </p>
  *
  * @author root
- * @since 2022-04-16
+ * @since 2022-04-23
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Achievement implements Serializable {
+@TableName("replaceWord")
+public class Replaceword implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
       @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    private Integer id;
 
-    private String achieveName;
+    private String wordBefore;
 
-    private String detail;
+    private String wordAfter;
 
-    private Long firstWon;
-
-    private Boolean isCustom;
 
 }

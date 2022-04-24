@@ -11,11 +11,11 @@ import org.springframework.stereotype.Controller;
  * </p>
  *
  * @author root
- * @since 2022-04-16
+ * @since 2022-04-23
  */
 @Controller
-@RequestMapping("/party")
-public class PartyController {
+@RequestMapping("/replaceword")
+public class ReplacewordController {
 
 }
 

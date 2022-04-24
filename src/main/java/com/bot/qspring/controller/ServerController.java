@@ -29,10 +29,4 @@ public class ServerController {
         return new Object();
     }
 
-    @GetMapping("/test")
-    public Object test(){
-        WordCounterService wordCounterService = new WordCounterService();
-        wordCounterService.getFreeTime(LocalDateTime.now());
-        return new Object();
-    }
 }
