@@ -66,11 +66,22 @@ public class AppDivinationService {
         StringBuilder builder = new StringBuilder();
         String msg = vo.getMessage();
         Divirecord divirecord = divirecordService.getById(vo.getUser_id());
+        if(!msg.contains("的签文")){
+            senderService.sendPrivate(2214106974L, "新签文：\n"+vo.toString());
+            builder.append(
+                    achievementService.wonAchieve("众人拾柴火焰高", vo.getUser_id(), vo.getGroup_id())
+            );
+        }
         if(msg.contains("的签文") && msg.contains("【宜】")){
             //自制签文
             if(divirecord != null && divirecord.getLastTime().equals(LocalDate.now())){
+
+                msg = msg.replace("\r","").replace("\n","");
+                String diviMsg = divirecord.getLastText();
+                diviMsg = diviMsg.replace("\r","").replace("\n","").trim();
+
                 //今天有求过签
-                if(msg.contains(divirecord.getLastText().replace("\n", "\r\n").trim())){
+                if(msg.contains(diviMsg)){
                     //复读了一遍签文
                     builder.append(
                             achievementService.wonAchieve("人类的本质", vo.getUser_id(), vo.getGroup_id())
@@ -101,8 +112,7 @@ public class AppDivinationService {
             );
         }
         else{
-
-            System.out.println("众人拾柴");
+            senderService.sendPrivate(2214106974L, "新签文：\n"+vo.toString());
             builder.append(
                     achievementService.wonAchieve("众人拾柴火焰高", vo.getUser_id(), vo.getGroup_id())
             );
