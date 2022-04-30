@@ -39,4 +39,16 @@ public interface AchievementDao {
             "ORDER BY is_custom DESC, cn DESC ")
     public List<AchievementAll> getNotWon(Long userId);
 
+
+    @Select("SELECT ac2.*, if(re.cn1 is null, 0, re.cn1) cn " +
+            "FROM ( " +
+            "     SELECT ac.*, count(ac.id) cn1 " +
+            "     FROM achievement ac, achieve_record ar, register r " +
+            "     WHERE " +
+            "           ac.id = ar.achievement_id and ar.user_id = r.user_id and r.group_id = #{groupId} " +
+            "     GROUP BY ac.id " +
+            "         ) as re right join achievement ac2 on re.id = ac2.id " +
+            "ORDER BY cn desc")
+    public List<AchievementAll> getAllAchieveByGroup(Long groupId);
+
 }

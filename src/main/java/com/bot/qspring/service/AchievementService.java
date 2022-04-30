@@ -107,15 +107,18 @@ public class AchievementService {
                     .append("【")
                     .append(achieve.getAchieveName())
                     .append("】")
-                    .append(achieve.getDetail())
+                    .append(achieve.getCn() == 0 ? "★机密" : achieve.getDetail())
                     .append("\n");
         }
         return builder.toString();
     }
 
-    public String getAllAchievement(){
+    public String getAllAchievementPublic(){
         List<AchievementAll> allAchieve = achievementDao.getAllOwnedAchievement();
+        return allAchieveToMsg(allAchieve);
+    }
 
+    private String allAchieveToMsg(List<AchievementAll> allAchieve) {
         StringBuilder builder = new StringBuilder();
         builder
                 .append("成就图鉴：\n")
@@ -130,6 +133,12 @@ public class AchievementService {
                     .append("\n");
         }
         return builder.toString();
+    }
+
+    public String getAllAchievement(Long groupId){
+        List<AchievementAll> allAchieve = achievementDao.getAllAchieveByGroup(groupId);
+        //List<AchievementAll> allAchieve = achievementDao.getAllOwnedAchievement();
+        return allAchieveToMsg(allAchieve);
     }
 
 

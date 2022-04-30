@@ -47,7 +47,8 @@ public class ServerService {
                     .append("【重置计数】让不理你的bot重新理你\n")
                     .append("【xxx什么梗】查看某梗来源（仅支持冷门梗）\n")
                     .append("【成就】查看本人已获成就\n")
-                    .append("【成就图鉴】查看所有可获得的成就\n")
+                    .append("【成就图鉴】查看本群成就图鉴\n")
+                    .append("【全服成就图鉴】查看所有可获得的成就\n")
                     .append("【未得成就】查看本人未获得的成就\n")
                     .append("【报名 活动名】报名一项活动，活动不存在则新建\n")
                     .append("【取消报名 活动名】取消活动报名\n")
@@ -258,9 +259,15 @@ public class ServerService {
                 checkCounter(messageVo);
                 return;
             }
+            case "全服成就图鉴": {
+                if(checkCounter(messageVo)){
+                    builder.append(achievementService.getAllAchievementPublic());
+                }
+                break;
+            }
             case "成就图鉴": {
                 if(checkCounter(messageVo)){
-                    builder.append(achievementService.getAllAchievement());
+                    builder.append(achievementService.getAllAchievement(messageVo.getGroup_id()));
                 }
                 break;
             }
