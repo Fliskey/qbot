@@ -44,10 +44,70 @@ public class AppDivinationService {
         for(Divination divi : list){
             String meme = divi.getKey();
             if(msg.contains(meme)){
-                return divi.getMemeFrom();
+                String getAch = achievementService.wonAchieve("刨根问底", vo.getUser_id(), vo.getGroup_id());
+
+                StringBuilder builder = new StringBuilder();
+                builder.append(divi.getMemeFrom());
+                builder.append("\n");
+
+                if(!getAch.equals("")){
+                    builder.append("获得成就：\n");
+                    builder.append(getAch);
+                }
+
+                return builder.toString();
             }
         }
         return "";
+    }
+
+    //文字中带【宜】或【忌】
+    public String selfGoodBad(MessageVo vo){
+        StringBuilder builder = new StringBuilder();
+        String msg = vo.getMessage();
+        Divirecord divirecord = divirecordService.getById(vo.getUser_id());
+        if(msg.contains("的签文") && msg.contains("【宜】")){
+            //自制签文
+            if(divirecord != null && divirecord.getLastTime().equals(LocalDate.now())){
+                //今天有求过签
+                if(msg.contains(divirecord.getLastText().replace("\n", "\r\n").trim())){
+                    //复读了一遍签文
+                    builder.append(
+                            achievementService.wonAchieve("人类的本质", vo.getUser_id(), vo.getGroup_id())
+                    );
+                }
+                else if(divirecord.getLastLevel().contains("凶") && msg.contains("吉")){
+                    //自己改凶为吉
+                    builder.append(
+                            achievementService.wonAchieve("我命由我不由天", vo.getUser_id(), vo.getGroup_id())
+                    );
+                }
+                else if(divirecord.getLastLevel().contains("吉") && msg.contains("凶")){
+                    //自己改吉为凶
+                    builder.append(
+                            achievementService.wonAchieve("让暴风雨来得更猛烈些吧！", vo.getUser_id(), vo.getGroup_id())
+                    );
+                }
+                else{
+                    builder.append(
+                        achievementService.wonAchieve("众人拾柴火焰高", vo.getUser_id(), vo.getGroup_id())
+                    );
+                }
+            }
+
+            //无论今天有没有求过，自己发了一条签文
+            builder.append(
+                    achievementService.wonAchieve("bot体验卡", vo.getUser_id(), vo.getGroup_id())
+            );
+        }
+        else{
+
+            System.out.println("众人拾柴");
+            builder.append(
+                    achievementService.wonAchieve("众人拾柴火焰高", vo.getUser_id(), vo.getGroup_id())
+            );
+        }
+        return builder.toString();
     }
 
     public String getDiviRecord(MessageVo vo){
@@ -337,6 +397,7 @@ public class AppDivinationService {
         Long user_id = vo.getUser_id();
         LocalDate today = LocalDate.now();
         Divirecord divirecord = divirecordService.getById(user_id);
+
         if(divirecord == null){
             builder.append("您是第一次打卡！\n");
             achieveBuilder.append(achievementService.wonAchieve(9L, vo.getUser_id(), vo.getGroup_id()));
@@ -347,6 +408,18 @@ public class AppDivinationService {
             record.setLastTime(today);
             record.setContinuity(1);
             record.setCumulate(1);
+            if(record.getLastLevel().equals("大吉")){
+                record.setBigGoodDays(1);
+            }
+            else{
+                record.setBigGoodDays(0);
+            }
+            if(record.getLastLevel().equals("大凶")){
+                record.setBigBadDays(1);
+            }
+            else{
+                record.setBigBadDays(0);
+            }
             record.setDiviGroup(vo.getGroup_id());
             divirecord = record;
             builder
@@ -384,6 +457,24 @@ public class AppDivinationService {
                 achieveBuilder.append(achievementService.checkTime(vo));
                 builder.append("您的签文：\n");
                 Divirecord record = this.divination(vo);
+
+                if(divirecord.getBigGoodDays() == null){
+                    divirecord.setBigGoodDays(0);
+                }
+                if(divirecord.getBigBadDays() == null){
+                    divirecord.setBigBadDays(0);
+                }
+
+                record.setBigGoodDays(record.getLastLevel().equals("大吉") ? divirecord.getBigGoodDays()+1 : 0);
+                record.setBigBadDays(record.getLastLevel().equals("大凶") ? divirecord.getBigBadDays()+1 : 0);
+
+                if(record.getBigGoodDays() >= 3){
+                    achieveBuilder.append(achievementService.wonAchieve("欧皇", vo.getUser_id(), vo.getGroup_id()));
+                }
+                if(record.getBigBadDays() >= 3){
+                    achieveBuilder.append(achievementService.wonAchieve("非酋", vo.getUser_id(), vo.getGroup_id()));
+                }
+
                 record.setCumulate(divirecord.getCumulate());
                 record.setContinuity(divirecord.getContinuity());
                 record.setLastTime(today);

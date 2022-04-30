@@ -33,6 +33,15 @@ public class SenderService {
         return getName;
     }
 
+    public JsonElement getGroupMemberInfo(Long groupId, Long userId){
+        StringBuilder url = new StringBuilder();
+        url.append(host).append("/get_group_member_info").append("?");
+        url
+                .append("group_id=").append(groupId).append("&")
+                .append("user_id=").append(userId);
+        return send(url.toString());
+    }
+
     private String toUrl(String msg){
         return msg
                 .trim()

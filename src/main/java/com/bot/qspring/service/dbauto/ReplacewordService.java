@@ -1,4 +1,4 @@
-package com.bot.qspring.service;
+package com.bot.qspring.service.dbauto;
 
 import com.bot.qspring.entity.Replaceword;
 import com.baomidou.mybatisplus.extension.service.IService;

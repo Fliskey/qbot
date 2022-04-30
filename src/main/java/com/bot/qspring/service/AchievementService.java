@@ -1,20 +1,18 @@
 package com.bot.qspring.service;
 
+import com.bot.qspring.dao.AchievementDao;
 import com.bot.qspring.entity.AchieveRecord;
 import com.bot.qspring.entity.Achievement;
 import com.bot.qspring.mapper.AchieveRecordMapper;
 import com.bot.qspring.mapper.AchievementMapper;
+import com.bot.qspring.model.Bo.AchievementAll;
 import com.bot.qspring.model.Vo.MessageVo;
-import org.apache.logging.log4j.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class AchievementService {
@@ -29,6 +27,9 @@ public class AchievementService {
 
     @Autowired
     SenderService senderService;
+
+    @Autowired
+    AchievementDao achievementDao;
 
     public String checkTime(MessageVo vo){
         StringBuilder builder = new StringBuilder();
@@ -80,7 +81,59 @@ public class AchievementService {
         return builder.toString();
     }
 
-    public String getAllAchieve(Long userId){
+    public String getNotWonAchieve(Long userId){
+        List<AchievementAll> notWonAchieves = achievementDao.getNotWon(userId);
+        StringBuilder builder = new StringBuilder();
+        if(notWonAchieves.size() == 0){
+            return "截至今日，您已取得所有成就！";
+        }
+        builder
+                .append("您未获得【")
+                .append(notWonAchieves.size())
+                .append("】项成就：\n");
+
+        int state = 0;
+        for(var achieve : notWonAchieves){
+            if(achieve.getIsCustom() != null && state != 1){
+                state = 1;
+                builder.append("---- 需人工授予 ----\n");
+            }
+            else if(achieve.getIsCustom() == null && state != 2){
+                state = 2;
+                builder.append("---- 自动授予 ----\n");
+            }
+            builder
+                    .append(achieve.getCn())
+                    .append("【")
+                    .append(achieve.getAchieveName())
+                    .append("】")
+                    .append(achieve.getDetail())
+                    .append("\n");
+        }
+        return builder.toString();
+    }
+
+    public String getAllAchievement(){
+        List<AchievementAll> allAchieve = achievementDao.getAllOwnedAchievement();
+
+        StringBuilder builder = new StringBuilder();
+        builder
+                .append("成就图鉴：\n")
+                .append("(数字为获得人数)\n");
+        for(var achieve: allAchieve){
+            builder
+                    .append(achieve.getCn())
+                    .append("【")
+                    .append(achieve.getAchieveName())
+                    .append("】")
+                    .append(achieve.getCn() == 0 ? "★机密" : achieve.getDetail())
+                    .append("\n");
+        }
+        return builder.toString();
+    }
+
+
+    public String getOnesAchieve(Long userId){
         Map<String, Object> map = new HashMap<>();
         map.put("user_id", userId);
         List<AchieveRecord> achieveRecords = achieveRecordMapper.selectByMap(map);
@@ -134,6 +187,17 @@ public class AchievementService {
                 .append("】")
                 .append("成就的首位获得者！\n");
         return builder.toString();
+    }
+
+    public String wonAchieve(String achieveName, Long userId, Long groupId){
+        List<Achievement> achievements = achievementMapper.selectByMap(new HashMap<>());
+        for(Achievement achievement : achievements){
+            if(achievement.getAchieveName().contains(achieveName)){
+                Long achId = achievement.getId();
+                return wonAchieve(achId, userId, groupId);
+            }
+        }
+        return "";
     }
 
     public String wonAchieve(Long achieveId, Long userId, Long groupId){

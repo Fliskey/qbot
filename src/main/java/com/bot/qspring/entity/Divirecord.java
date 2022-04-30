@@ -47,5 +47,8 @@ public class Divirecord implements Serializable {
 
     private String lastBad;
 
+    private Integer bigGoodDays;
+
+    private Integer bigBadDays;
 
 }
