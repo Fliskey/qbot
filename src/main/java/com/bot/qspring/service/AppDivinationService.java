@@ -1,13 +1,15 @@
 package com.bot.qspring.service;
 
 import com.bot.qspring.dao.DivinationDao;
-import com.bot.qspring.entity.Divigrouprecord;
-import com.bot.qspring.entity.Divination;
-import com.bot.qspring.entity.Divirecord;
+import com.bot.qspring.entity.*;
 import com.bot.qspring.mapper.DivirecordMapper;
+import com.bot.qspring.mapper.SpecialMapper;
 import com.bot.qspring.model.Vo.MessageVo;
 import com.bot.qspring.service.dbauto.DivigrouprecordService;
 import com.bot.qspring.service.dbauto.DivirecordService;
+import com.bot.qspring.service.dbauto.DivistaticService;
+import com.bot.qspring.service.dbauto.SpecialService;
+import net.sf.cglib.core.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+
+import static java.lang.Math.pow;
 
 @Service
 public class AppDivinationService {
@@ -37,6 +41,149 @@ public class AppDivinationService {
 
     @Autowired
     private SenderService senderService;
+
+    @Autowired
+    private DivistaticService divistaticService;
+
+    public List<Integer> decodeWeek(Integer weekRecord){
+        List<Integer> ret = new ArrayList<>();
+        for(int i = 0; i < 7; i++){
+            ret.add(weekRecord % 10);
+            weekRecord /= 10;
+        }
+        return ret;
+    }
+
+    /**
+     * 按十进制存一周数据
+     * @param weekRecord 已有的记录值
+     * @param weekOfDay 每周周一开始，1~7
+     * @param todayLevel 1为大凶
+     * @return
+     */
+    public Integer encodeWeek(Integer weekRecord, Integer weekOfDay,Integer todayLevel){
+        double power = (double) (weekOfDay - 1);
+        double plus = todayLevel * pow(10, power);
+        weekRecord += (int) plus;
+        return weekRecord;
+    }
+
+    public String historyStatic(MessageVo vo){
+        StringBuilder builder = new StringBuilder();
+        builder.append("历史运势：\n");
+        Divistatic diviStatic = divistaticService.getById(vo.getUser_id());
+        if(diviStatic == null){
+            diviStatic = new Divistatic();
+            diviStatic = initDiviStatic(vo);
+        }
+        String[] levels = new String[]{"大凶", "小凶", "中平", "小吉", "大吉"};
+        Integer[] records = new Integer[]{
+                diviStatic.getTlevel1(),
+                diviStatic.getTlevel2(),
+                diviStatic.getTlevel3(),
+                diviStatic.getTlevel4(),
+                diviStatic.getTlevel5(),
+        };
+        int total = 0;
+        for(int i = 0 ; i < 5 ; i++){
+            total += records[i];
+        }
+
+        DecimalFormat df = new DecimalFormat("0.00");
+//        String takes = df.format((double)/(double)total*100);
+        for(int i = 0 ; i < 5; i++){
+            builder
+                    .append("【")
+                    .append(levels[i])
+                    .append("】")
+                    .append(records[i])
+                    .append("次，")
+                    .append(df.format((double) records[i] / (double) total * 100))
+                    .append("%\n");
+        }
+        return builder.toString();
+    }
+
+    public String weekSingleStatic(MessageVo vo){
+        StringBuilder builder = new StringBuilder();
+        builder.append("本周运势：\n");
+        Divistatic diviStatic = divistaticService.getById(vo.getUser_id());
+        if(diviStatic == null){
+            diviStatic = new Divistatic();
+            diviStatic = initDiviStatic(vo);
+        }
+        List<Integer> weekStatic = decodeWeek(diviStatic.getWeekrecord());
+        for(int i = 0; i < 7; i++){
+            int todayStatic = weekStatic.get(i);
+            String todayLevel = "";
+            switch (todayStatic){
+                case 0:
+                    todayLevel = "无记录";
+                    break;
+                case 1:
+                    todayLevel = "大凶";
+                    break;
+                case 2:
+                    todayLevel = "小凶";
+                    break;
+                case 3:
+                    todayLevel = "中平";
+                    break;
+                case 4:
+                    todayLevel = "小吉";
+                    break;
+                case 5:
+                    todayLevel = "大吉";
+                    break;
+            }
+            String todayWeek = "";
+            switch (i){
+                case 0:
+                    todayWeek = "周一";
+                    break;
+                case 1:
+                    todayWeek = "周二";
+                    break;
+                case 2:
+                    todayWeek = "周三";
+                    break;
+                case 3:
+                    todayWeek = "周四";
+                    break;
+                case 4:
+                    todayWeek = "周五";
+                    break;
+                case 5:
+                    todayWeek = "周六";
+                    break;
+                case 6:
+                    todayWeek = "周日";
+                    break;
+            }
+            builder
+                    .append(todayWeek)
+                    .append("：【")
+                    .append(todayLevel)
+                    .append("】\n")
+                    ;
+
+        }
+
+        return builder.toString();
+    }
+
+    private Divistatic initDiviStatic(MessageVo vo) {
+        Divistatic diviStatic = new Divistatic();
+        diviStatic.setId(vo.getUser_id());
+        diviStatic.setWeekrecord(0);
+        diviStatic.setTlevel1(0);
+        diviStatic.setTlevel2(0);
+        diviStatic.setTlevel3(0);
+        diviStatic.setTlevel4(0);
+        diviStatic.setTlevel5(0);
+        divistaticService.save(diviStatic);
+        return diviStatic;
+    }
 
     public String getMemeFrom(MessageVo vo){
         String msg = vo.getMessage();
@@ -269,7 +416,27 @@ public class AppDivinationService {
         return builder.toString();
     }
 
-    public Divirecord divination(MessageVo vo){
+    @Autowired
+    private SpecialMapper specialMapper;
+
+    @Autowired
+    private SpecialService specialService;
+
+    public Integer judgeSpecialDay(){
+        List<Special> allSpecial = specialMapper.selectByMap(new HashMap<>());
+        for(Special special : allSpecial){
+            if(special.getType().equals("festival")){
+                LocalDate specialDate = special.getSpecialday();
+                LocalDate today = LocalDate.now();
+                if(specialDate.getMonth().equals(today.getMonth()) && specialDate.getDayOfMonth() == today.getDayOfMonth()){
+                    return special.getId();
+                }
+            }
+        }
+        return 0;
+    }
+
+    public Divirecord divination(MessageVo vo, Divirecord lastDiviRecord){
         String Level = "";
         Random random = new Random();
         int getRandom = random.nextInt(10);
@@ -301,11 +468,21 @@ public class AppDivinationService {
                 bad = 2;
         }
         divirecord.setLastLevel(Level);
+
+        StringBuilder retBuilder = new StringBuilder();
+
         List<Divination> div = new ArrayList<>();
+        int special = judgeSpecialDay();
+        if(special != 0){
+            String text = specialService.getById(special).getText();
+            retBuilder.append(text).append("\n");
+        }
 
         //抽签
         while(bad + good < 4){
-            Divination pick = divinationDao.getRandDivination();
+            Divination pick = special == 0
+                            ? divinationDao.getRandDivination()
+                            : divinationDao.getSpecialDivination(special);
             if(pick.getType().equals("good") && bad < 2){
                 continue;
             }
@@ -344,24 +521,23 @@ public class AppDivinationService {
                 bad++;
             }
         }
-        StringBuilder builder = new StringBuilder();
 
         //添加运势
-        builder.append("【今日运势】").append(Level).append("\n");
+        retBuilder.append("【今日运势】").append(Level).append("\n");
         if(Level.equals("大吉")){
             String good1 = "【宜】"+ div.get(0).getTitle()+": "+div.get(0).getContent() + "\n";
             String good2 = "【宜】"+ div.get(1).getTitle()+": "+div.get(1).getContent() + "\n";
-            builder.append(good1).append(good2);
+            retBuilder.append(good1).append(good2);
             divirecord.setLastGood(good1 + "|" + good2);
-            builder.append("【忌】诸事皆宜\n");
+            retBuilder.append("【忌】诸事皆宜\n");
             divirecord.setLastBad("");
         }
         else if(Level.equals("大凶")){
-            builder.append("【宜】诸事不宜\n");
+            retBuilder.append("【宜】诸事不宜\n");
             divirecord.setLastGood("");
             String bad1 = "【忌】"+ div.get(0).getTitle()+": "+div.get(0).getContent() + "\n";
             String bad2 = "【忌】"+ div.get(1).getTitle()+": "+div.get(1).getContent() + "\n";
-            builder.append(bad1).append(bad2);
+            retBuilder.append(bad1).append(bad2);
             divirecord.setLastBad(bad1 + "|" + bad2);
         }
         else{
@@ -371,7 +547,7 @@ public class AppDivinationService {
             String bad1 = "【忌】"+ div.get(0).getTitle()+": "+div.get(0).getContent() + "\n";
             String bad2 = "【忌】"+ div.get(1).getTitle()+": "+div.get(1).getContent() + "\n";
             divirecord.setLastBad(bad1 + "|" + bad2);
-            builder.append(good1).append(good2).append(bad1).append(bad2);
+            retBuilder.append(good1).append(good2).append(bad1).append(bad2);
         }
 
         //添加打卡位次
@@ -394,10 +570,52 @@ public class AppDivinationService {
                 divigrouprecordService.updateById(divigrouprecord);
             }
         }
+
+        //求签记录板块
+        Divistatic getStatic = divistaticService.getById(vo.getUser_id());
+        if(getStatic == null){
+            getStatic = initDiviStatic(vo);
+        }
+        int todayOfWeek = LocalDate.now().getDayOfWeek().ordinal() + 1;
+        LocalDate weekBegin = LocalDate.now().minusDays(todayOfWeek - 1);
+        int todayDiviLevel = 0;
+        switch (Level){
+            case "大凶":
+                todayDiviLevel = 1;
+                getStatic.setTlevel1(getStatic.getTlevel1()+1);
+                break;
+            case "小凶":
+                todayDiviLevel = 2;
+                getStatic.setTlevel2(getStatic.getTlevel2()+1);
+                break;
+            case "中平":
+                todayDiviLevel = 3;
+                getStatic.setTlevel3(getStatic.getTlevel3()+1);
+                break;
+            case "小吉":
+                todayDiviLevel = 4;
+                getStatic.setTlevel4(getStatic.getTlevel4()+1);
+                break;
+            case "大吉":
+                todayDiviLevel = 5;
+                getStatic.setTlevel5(getStatic.getTlevel5()+1);
+                break;
+        }
+
+        if(lastDiviRecord == null || lastDiviRecord.getLastTime().isBefore(weekBegin)){
+            //上次求签在这星期前或没求过签
+            getStatic.setWeekrecord(encodeWeek(0, todayOfWeek, todayDiviLevel));
+        }
+        else{
+            //上次求签在本星期内
+            getStatic.setWeekrecord(encodeWeek(getStatic.getWeekrecord(), todayOfWeek, todayDiviLevel));
+        }
+        divistaticService.updateById(getStatic);
+
         String ranking = "您是本群今日第【" + divigrouprecord.getNum() + "】位求签者";
         divirecord.setDiviRanking(ranking);
         divirecord.setRankingNum(divigrouprecord.getNum());
-        divirecord.setLastText(builder.toString());
+        divirecord.setLastText(retBuilder.toString());
         return divirecord;
     }
 
@@ -409,11 +627,11 @@ public class AppDivinationService {
         Divirecord divirecord = divirecordService.getById(user_id);
 
         if(divirecord == null){
-            builder.append("您是第一次打卡！\n");
+            builder.append("您是第一次求签！\n");
             achieveBuilder.append(achievementService.wonAchieve(9L, vo.getUser_id(), vo.getGroup_id()));
             achieveBuilder.append(achievementService.checkTime(vo));
             builder.append("\n您的签文：\n");
-            Divirecord record = this.divination(vo);
+            Divirecord record = this.divination(vo, divirecord);
             record.setId(user_id);
             record.setLastTime(today);
             record.setContinuity(1);
@@ -466,7 +684,7 @@ public class AppDivinationService {
                 }
                 achieveBuilder.append(achievementService.checkTime(vo));
                 builder.append("您的签文：\n");
-                Divirecord record = this.divination(vo);
+                Divirecord record = this.divination(vo, divirecord);
 
                 if(divirecord.getBigGoodDays() == null){
                     divirecord.setBigGoodDays(0);
@@ -502,9 +720,17 @@ public class AppDivinationService {
                 achieveBuilder.append(achievementService.wonAchieve(12L, vo.getUser_id(), vo.getGroup_id()));
             }
         }
+        if(divirecord.getContinuity() >= 30){
+            achieveBuilder.append(achievementService.wonAchieve("滴！月卡！", vo.getUser_id(), vo.getGroup_id()));
+        }
         if(divirecord.getContinuity() >= 7){
             achieveBuilder.append(achievementService.wonAchieve(11L, vo.getUser_id(), vo.getGroup_id()));
         }
+        if(judgeSpecialDay() == 1){
+            achieveBuilder.append(achievementService.wonAchieve("游园检票，排队入内！", vo.getUser_id(), vo.getGroup_id()));
+        }
+
+        //返回板块
         builder.append("\n您的打卡记录：\n连续求签【").append(divirecord.getContinuity()).append("】天\n");
         builder.append("累计求签【").append(divirecord.getCumulate()).append("】天\n");
         if(!achieveBuilder.toString().equals("")){

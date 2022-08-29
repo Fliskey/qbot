@@ -1,5 +1,7 @@
 package com.bot.qspring.service;
 
+import com.bot.qspring.dao.DivinationDao;
+import com.bot.qspring.mapper.DivinationMapper;
 import com.bot.qspring.model.Vo.MessageVo;
 import com.bot.qspring.service.stopped.AppPartyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -255,6 +257,14 @@ public class ServerService {
         }
         //全词匹配
         switch (msg) {
+            case "本周运势":{
+                builder.append(appDivinationService.weekSingleStatic(messageVo));
+                break;
+            }
+            case "历史运势":{
+                builder.append(appDivinationService.historyStatic(messageVo));
+                break;
+            }
             case "重置计数":{
                 checkCounter(messageVo);
                 return;

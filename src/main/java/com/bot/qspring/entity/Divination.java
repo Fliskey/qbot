@@ -38,5 +38,7 @@ public class Divination implements Serializable {
 
     private String tag;
 
+    private Integer specialId;
+
 
 }
