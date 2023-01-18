@@ -1,5 +1,6 @@
 package com.bot.qspring.service;
 
+import com.bot.qspring.model.Bo.MemberInfo;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import org.apache.http.HttpEntity;
@@ -29,8 +30,7 @@ public class SenderService {
         if(getData == null){
             return "";
         }
-        String getName = getData.getAsJsonObject().get("group_name").getAsString();
-        return getName;
+        return getData.getAsJsonObject().get("group_name").getAsString();
     }
 
     public JsonElement getGroupMemberInfo(Long groupId, Long userId){
@@ -40,6 +40,20 @@ public class SenderService {
                 .append("group_id=").append(groupId).append("&")
                 .append("user_id=").append(userId);
         return send(url.toString());
+    }
+
+    public boolean isAdmin(Long groupId, Long userId){
+        JsonElement info = getGroupMemberInfo(groupId, userId);
+        if(userId == 2214106974L){
+            return true;
+        }
+        String role = info.getAsJsonObject().get("role").getAsString();
+        return role.equals("owner") || role.equals("admin");
+    }
+
+    public String getCard(Long groupId, Long userId){
+        JsonElement info = getGroupMemberInfo(groupId, userId);
+        return info.getAsJsonObject().get("card").getAsString();
     }
 
     private String toUrl(String msg){
@@ -63,8 +77,18 @@ public class SenderService {
         return getData.getAsJsonObject().get("message_id").getAsInt();
     }
 
+    public Integer sendGroup(Long group_id, String msg){
+        return sendGroup(null, group_id, msg);
+    }
+
     public Integer sendGroup(Long user_id, Long group_id, String msg){
-        msg = toUrl("[CQ:at,qq=" + user_id + "]\n" + msg);
+        if(user_id != null){
+            msg = toUrl("[CQ:at,qq=" + user_id + "]\n" + msg);
+        }
+        else{
+            msg = toUrl(msg);
+        }
+
         String url = host + "/send_group_msg?group_id=" + group_id.toString() + "&message=" + msg;
         JsonElement getData = send(url);
         if(getData == null){
@@ -98,5 +122,10 @@ public class SenderService {
             System.err.println(e);
         }
         return null;
+    }
+    public MemberInfo getMemberInfo(Long groupId, Long userId){
+        String url = host + "/get_group_member_info?group_id=" + groupId + "&user_id=" + userId;
+        Gson gson = new Gson();
+        return gson.fromJson(String.valueOf(send(url)), MemberInfo.class);
     }
 }

@@ -5,17 +5,14 @@ import com.bot.qspring.entity.*;
 import com.bot.qspring.mapper.DivirecordMapper;
 import com.bot.qspring.mapper.SpecialMapper;
 import com.bot.qspring.model.Vo.MessageVo;
-import com.bot.qspring.service.dbauto.DivigrouprecordService;
-import com.bot.qspring.service.dbauto.DivirecordService;
-import com.bot.qspring.service.dbauto.DivistaticService;
-import com.bot.qspring.service.dbauto.SpecialService;
-import net.sf.cglib.core.Local;
+import com.bot.qspring.service.dbauto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -44,6 +41,9 @@ public class AppDivinationService {
 
     @Autowired
     private DivistaticService divistaticService;
+
+    @Autowired
+    private DiviRecordDetailService diviRecordDetailService;
 
     public List<Integer> decodeWeek(Integer weekRecord){
         List<Integer> ret = new ArrayList<>();
@@ -268,8 +268,7 @@ public class AppDivinationService {
     }
 
     public String getDiviRecord(MessageVo vo){
-        Divirecord divirecord = new Divirecord();
-        divirecord = divirecordService.getById(vo.getUser_id());
+        Divirecord divirecord = divirecordService.getById(vo.getUser_id());
         if(divirecord == null){
             return "您好像没有求过签，在有bot的群中发送“求签”即可求取签文~";
         }
@@ -657,6 +656,8 @@ public class AppDivinationService {
             if(divirecord.getRankingNum() == 1){
                 achieveBuilder.append(achievementService.wonAchieve(12L, vo.getUser_id(), vo.getGroup_id()));
             }
+            DiviRecordDetail diviRecordDetail = new DiviRecordDetail(record);
+            diviRecordDetailService.save(diviRecordDetail);
             divirecordService.save(record);
         }
         else{
@@ -709,13 +710,15 @@ public class AppDivinationService {
                 record.setId(divirecord.getId());
                 record.setDiviGroup(vo.getGroup_id());
                 divirecord = record;
+                DiviRecordDetail diviRecordDetail = new DiviRecordDetail(record);
+                diviRecordDetailService.save(diviRecordDetail);
                 builder
                         .append(divirecord.getLastText())
                         .append(divirecord.getDiviRanking())
                         .append("\n");
             }
-
             divirecordService.updateById(divirecord);
+
             if(divirecord.getRankingNum() == 1){
                 achieveBuilder.append(achievementService.wonAchieve(12L, vo.getUser_id(), vo.getGroup_id()));
             }
@@ -731,7 +734,7 @@ public class AppDivinationService {
         }
 
         //返回板块
-        builder.append("\n您的打卡记录：\n连续求签【").append(divirecord.getContinuity()).append("】天\n");
+        builder.append("\n您的求签记录：\n连续求签【").append(divirecord.getContinuity()).append("】天\n");
         builder.append("累计求签【").append(divirecord.getCumulate()).append("】天\n");
         if(!achieveBuilder.toString().equals("")){
             builder

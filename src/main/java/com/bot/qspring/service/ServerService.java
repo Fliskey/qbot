@@ -1,12 +1,16 @@
 package com.bot.qspring.service;
 
-import com.bot.qspring.dao.DivinationDao;
-import com.bot.qspring.mapper.DivinationMapper;
+import com.bot.qspring.dao.NoticeDao;
+import com.bot.qspring.entity.GroupNotice;
+import com.bot.qspring.entity.ServiceSwitcher;
 import com.bot.qspring.model.Vo.MessageVo;
+import com.bot.qspring.service.dbauto.ServiceSwitcherService;
 import com.bot.qspring.service.stopped.AppPartyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -33,6 +37,17 @@ public class ServerService {
     @Autowired
     private NoticeService noticeService;
 
+    @Autowired
+    private AppDiceService appDiceService;
+
+    @Autowired
+    private AppSwitcherService appSwitcherService;
+
+    @Autowired
+    private ServiceSwitcherService serviceSwitcherService;
+
+    @Autowired
+    private NoticeDao noticeDao;
 
     private String getGuiding(MessageVo vo){
         StringBuilder builder = new StringBuilder();
@@ -160,15 +175,12 @@ public class ServerService {
         else if(msg.toLowerCase().contains("github")){
             builder.append("https://github.com/Fliskey/qbot");
         }
-        else if(msg.startsWith("通知")){
-            builder.append(noticeService.addNotice(messageVo));
-        }
         else if(msg.startsWith("admin")){
             builder.append(adminService.handleAdminAll(messageVo));
         }
         if(!builder.toString().equals("")){
             if(!msg.startsWith("admin") && msg.length() < 20){
-                wordCounterService.checkWordCounter(messageVo);
+//                wordCounterService.checkWordCounter(messageVo);
             }
             senderService.sendPrivate(messageVo.getUser_id(), builder.toString());
             return;
@@ -188,29 +200,48 @@ public class ServerService {
         senderService.sendPrivate(messageVo.getUser_id(), builder.toString());
     }
 
-    private boolean checkCounter(MessageVo messageVo){
-        String ret = wordCounterService.checkWordCounter(messageVo);
+    private String checkCounter(MessageVo messageVo){
+        String ret = wordCounterService.checkWordCounter(messageVo);StringBuilder builder = new StringBuilder();
+        builder.append(ret);
         if (!ret.equals("YES")) {
             System.out.println(ret);
-            StringBuilder builder = new StringBuilder();
-            builder.append(ret).append("\n");
+
             String achieve = achievementService.wonAchieve(1L, messageVo.getUser_id(), messageVo.getGroup_id());
             if(!achieve.equals("")){
                 builder
-                        .append("\n获得成就：\n")
+                        .append("\n\n获得成就：\n")
                         .append(achieve);
             }
-            senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), builder.toString());
-            return false; //不通过
         }
-        return true; //可以继续
+        return builder.toString();
     }
 
     public void handleGroup(MessageVo messageVo){
         String msg = messageVo.getMessage();
         System.out.println(msg);
 
+        ServiceSwitcher serviceSwitcher = serviceSwitcherService.getById(messageVo.getGroup_id());
+        if(serviceSwitcher != null && serviceSwitcher.getIdStopped()){
+            String result = appSwitcherService.switchJudge(serviceSwitcher, messageVo);
+            if(Objects.equals(result, "Off")){
+                return;
+            }
+            else{
+                senderService.sendGroup(messageVo.getGroup_id(), result);
+            }
+        }
+
         StringBuilder builder = new StringBuilder();
+//        String checkCounterResult = checkCounter(messageVo);
+//        if(!checkCounterResult.equals("YES")){
+//            builder.append(checkCounterResult);
+//        }
+
+        //骰子部分
+//        if(msg.startsWith(".")){
+//            builder.append(appDiceService.diceEnter(messageVo));
+//        }
+
         //部分匹配
         if(msg.contains("【宜】") || msg.contains("【忌】")){
             builder.append(appDivinationService.selfGoodBad(messageVo));
@@ -225,9 +256,20 @@ public class ServerService {
         else if(msg.toLowerCase().startsWith("bot help")){
             builder.append(getGuiding(messageVo));
         }
+        else if(msg.contains("bot") && msg.contains("off")){
+            builder.append(appSwitcherService.switchOff(messageVo));
+        }
         else if(msg.toLowerCase().contains("bot")){
             if(msg.toLowerCase().contains("github")){
                 builder.append("https://github.com/Fliskey/qbot");
+            }
+        }
+        else if(!msg.equals("通知") && !msg.equals("通知删除") && msg.startsWith("通知")){
+            if(senderService.isAdmin(messageVo.getGroup_id(), messageVo.getUser_id())){
+                builder.append(noticeService.addNotice(messageVo));
+            }
+            else{
+                builder.append("加通知权限不足");
             }
         }
         else if(msg.startsWith("报名统计")){
@@ -242,21 +284,54 @@ public class ServerService {
         else if(msg.startsWith("取消报名")){
             builder.append(appPartyService.cancelSignUpParty(messageVo));
         }
-//        else if(msg.startsWith("群名")){
-//            builder.append(senderService.getGroupName(messageVo.getGroup_id()));
+//        else if(msg.startsWith("活动列表")){
+//
 //        }
         else if(msg.contains("什么梗")){
             builder.append(appDivinationService.getMemeFrom(messageVo));
         }
 
+
         //全词匹配前确认Builder是否有需要发送的内容
         if(!builder.toString().equals("")){
-            wordCounterService.checkWordCounter(messageVo);
+//            wordCounterService.checkWordCounter(messageVo);
             senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), builder.toString());
             return;
         }
         //全词匹配
         switch (msg) {
+            case "通知":{
+                GroupNotice notice = noticeDao.getNoticeById(messageVo.getGroup_id(), LocalDate.now());
+                if(notice != null){
+                    String card = senderService.getCard(messageVo.getGroup_id(), notice.getCreatorId());
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
+                    builder.append("【通知信息】\n")
+                            .append("创建人：")
+                            .append(card)
+                            .append("\n")
+                            .append("创建日期：")
+                            .append(notice.getDateBegin().format(formatter))
+                            .append("\n")
+                            .append("终止日期：")
+                            .append(notice.getDateEnd().format(formatter))
+                            .append("\n")
+                            .append("通知内容：")
+                            .append(notice.getNoticeText());
+                }
+                else{
+                    builder.append("当前暂无通知");
+                }
+                break;
+            }
+            case "通知删除":{
+                if(senderService.isAdmin(messageVo.getGroup_id(), messageVo.getUser_id())){
+                    builder.append(noticeService.delNotice(messageVo));
+                }
+                else{
+                    builder.append("删除通知需要管理员权限");
+                }
+                break;
+            }
             case "本周运势":{
                 builder.append(appDivinationService.weekSingleStatic(messageVo));
                 break;
@@ -265,56 +340,40 @@ public class ServerService {
                 builder.append(appDivinationService.historyStatic(messageVo));
                 break;
             }
-            case "重置计数":{
-                checkCounter(messageVo);
-                return;
-            }
+//            case "重置计数":{
+//                checkCounter(messageVo);
+//                return;
+//            }
             case "全服成就图鉴": {
-                if(checkCounter(messageVo)){
-                    builder.append(achievementService.getAllAchievementPublic());
-                }
+                builder.append(achievementService.getAllAchievementPublic());
                 break;
             }
             case "成就图鉴": {
-                if(checkCounter(messageVo)){
-                    builder.append(achievementService.getAllAchievement(messageVo.getGroup_id()));
-                }
+                builder.append(achievementService.getAllAchievement(messageVo.getGroup_id()));
                 break;
             }
             case "未得成就": {
-                if(checkCounter(messageVo)){
-                    builder.append(achievementService.getNotWonAchieve(messageVo.getUser_id()));
-                }
+                builder.append(achievementService.getNotWonAchieve(messageVo.getUser_id()));
                 break;
             }
             case "成就": {
-                if(checkCounter(messageVo)){
-                    builder.append(achievementService.getOnesAchieve(messageVo.getUser_id()));
-                }
+                builder.append(achievementService.getOnesAchieve(messageVo.getUser_id()));
                 break;
             }
             case "求签统计": {
-                if(checkCounter(messageVo)){
-                    builder.append(appDivinationService.groupStatics(messageVo));
-                }
+                builder.append(appDivinationService.groupStatics(messageVo));
                 break;
             }
             case "求签排名": {
-                if(checkCounter(messageVo)){
-                    builder.append(appDivinationService.groupRanking(messageVo));
-                }
+                builder.append(appDivinationService.groupRanking(messageVo));
                 break;
             }
             case "求签统寄":{
-                if(checkCounter(messageVo)){
-                    builder.append(appDivinationService.groupBadStatics(messageVo));
-                }
+                builder.append(appDivinationService.groupBadStatics(messageVo));
                 break;
             }
             case "求签": {
-                if(checkCounter(messageVo)){
-                    builder.append(appDivinationService.beginDivination(messageVo));
-                }
+                builder.append(appDivinationService.beginDivination(messageVo));
                 break;
             }
             default:{
@@ -323,6 +382,16 @@ public class ServerService {
         }
         if(builder.toString().equals("")){
             return;
+        }
+        GroupNotice notice = noticeDao.getNoticeById(messageVo.getGroup_id(), LocalDate.now());
+        if(notice != null && !builder.toString().startsWith("【通知信息】")){
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
+            builder.append("\n本群通知:\n");
+            String card = senderService.getCard(messageVo.getGroup_id(), notice.getCreatorId());
+            builder.append("【")
+                    .append(card)
+                    .append("】")
+                    .append(notice.getNoticeText());
         }
         senderService.sendGroup(messageVo.getUser_id(), messageVo.getGroup_id(), builder.toString());
     }

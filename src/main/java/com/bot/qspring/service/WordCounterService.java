@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
 @Service
@@ -34,7 +35,7 @@ public class WordCounterService {
 
     public String checkWordCounter(MessageVo vo){
         //禁言临界条数
-        int edge = 5;
+        int edge = 7;
 
         String msg = vo.getMessage();
         Long userId = vo.getUser_id();
@@ -50,13 +51,7 @@ public class WordCounterService {
             LocalDateTime stopUntil = wordcounter.getStopUntil();
             if(stopUntil != null && stopUntil.isAfter(LocalDateTime.now())){
                 //正在封禁中
-                StringBuilder builder = new StringBuilder();
-                builder
-                        .append("不理你了，哼唧！\n")
-                        .append("等")
-                        .append(getFreeTime(wordcounter.getStopUntil()))
-                        .append("以后换个关键词来找我！！");
-                return builder.toString();
+                return "";
             }
             else{
                 //未封禁或过封禁，今天
@@ -69,11 +64,23 @@ public class WordCounterService {
                         wordcounter.setCounter(wordcounter.getCounter()+1);
                     }
                     wordcounterService.updateById(wordcounter);
-                    if(wordcounter.getCounter() == edge - 2){
-                        String ret ="注意，你已用“"+wordcounter.getWord()+"”连续叫我"+(edge - 2)+"次了，不可以调戏本bot！";
-                        return ret;
+                    if(wordcounter.getCounter() == edge - 4){
+                        return "不可以调戏本bot！";
                     }
-                    else if(wordcounter.getCounter() >= edge - 1){
+                    else if(wordcounter.getCounter() >= edge){
+                        //封禁
+                        wordcounter.setStopUntil(LocalDateTime.now().plusMinutes(5L));
+                        wordcounterService.updateById(wordcounter);
+                        StringBuilder builder = new StringBuilder();
+                        String nextTime = wordcounter.getStopUntil().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+                        builder
+                                .append("不理你了，哼唧！\n")
+                                .append(nextTime)
+                                .append("以后再来找我！！");
+                        senderService.sendGroup(vo.getUser_id(), vo.getGroup_id(), builder.toString());
+                        return builder.toString();
+                    }
+                    else if(wordcounter.getCounter() > edge - 4){
                         StringBuilder builder = new StringBuilder();
                         Random random = new Random();
                         int getRand = random.nextInt(7);
@@ -103,19 +110,7 @@ public class WordCounterService {
                         }
                         return builder.toString();
                     }
-                    /*else if(wordcounter.getCounter() >= edge){
-                        //封禁
-                        wordcounter.setStopUntil(LocalDateTime.now().plusMinutes(5L * wordcounter.getCounter()));
-                        wordcounterService.updateById(wordcounter);
-                        StringBuilder builder = new StringBuilder();
-                        builder
-                                .append("不理你了，哼唧！\n")
-                                .append("等")
-                                .append(getFreeTime(wordcounter.getStopUntil()))
-                                .append("以后换个关键词来找我！！");
-                        senderService.sendGroup(vo.getUser_id(), vo.getGroup_id(), builder.toString());
-                        return 0;
-                    }*/
+
                     else{
                         return "YES";
                     }

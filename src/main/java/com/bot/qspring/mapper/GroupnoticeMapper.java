@@ -1,6 +1,6 @@
 package com.bot.qspring.mapper;
 
-import com.bot.qspring.entity.Groupnotice;
+import com.bot.qspring.entity.GroupNotice;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -13,6 +13,6 @@ import org.apache.ibatis.annotations.Mapper;
  * @since 2022-04-24
  */
 @Mapper
-public interface GroupnoticeMapper extends BaseMapper<Groupnotice> {
+public interface GroupnoticeMapper extends BaseMapper<GroupNotice> {
 
 }

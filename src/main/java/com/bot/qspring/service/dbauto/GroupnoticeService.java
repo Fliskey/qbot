@@ -1,6 +1,6 @@
 package com.bot.qspring.service.dbauto;
 
-import com.bot.qspring.entity.Groupnotice;
+import com.bot.qspring.entity.GroupNotice;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author root
  * @since 2022-04-24
  */
-public interface GroupnoticeService extends IService<Groupnotice> {
+public interface GroupnoticeService extends IService<GroupNotice> {
 
 }
