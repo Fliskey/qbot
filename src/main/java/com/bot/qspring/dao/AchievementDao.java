@@ -1,10 +1,8 @@
 package com.bot.qspring.dao;
 
-import com.bot.qspring.model.Bo.AchievementAll;
+import com.bot.qspring.entity.bo.AchievementAll;
 import org.apache.ibatis.annotations.Select;
-import org.apache.xmlbeans.impl.xb.xsdschema.Public;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -19,7 +17,7 @@ public interface AchievementDao {
             "   or ac.id not in ( SELECT ar2.achievement_id FROM achieve_record ar2 )" +
             "GROUP BY ac.id " +
             "ORDER BY cn desc "
-            )
+    )
     public List<AchievementAll> getAllOwnedAchievement();
 
 

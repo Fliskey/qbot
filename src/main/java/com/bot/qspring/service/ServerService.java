@@ -1,9 +1,9 @@
 package com.bot.qspring.service;
 
 import com.bot.qspring.dao.NoticeDao;
-import com.bot.qspring.entity.GroupNotice;
-import com.bot.qspring.entity.ServiceSwitcher;
-import com.bot.qspring.model.Vo.MessageVo;
+import com.bot.qspring.entity.po.GroupNotice;
+import com.bot.qspring.entity.po.ServiceSwitcher;
+import com.bot.qspring.entity.vo.MessageVo;
 import com.bot.qspring.service.dbauto.ServiceSwitcherService;
 import com.bot.qspring.service.stopped.AppPartyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Objects;
+import java.util.Random;
 
 @Service
 public class ServerService {
@@ -300,7 +301,7 @@ public class ServerService {
                         builder.append(eduService.callToSport(messageVo));
                         break;
                     case "bot去休息":
-//                builder.append(eduService.callToBreak(messageVo));
+                        builder.append(eduService.callToBreak(messageVo));
                         break;
                     case "bot昨天在干啥":
                     case "bot昨天在干嘛":

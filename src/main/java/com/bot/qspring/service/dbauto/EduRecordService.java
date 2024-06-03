@@ -1,11 +1,11 @@
 package com.bot.qspring.service.dbauto;
 
-import com.bot.qspring.entity.EduRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.bot.qspring.entity.po.EduRecord;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author Fliskey

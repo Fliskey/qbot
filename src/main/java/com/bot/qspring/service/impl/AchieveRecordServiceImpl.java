@@ -1,14 +1,14 @@
 package com.bot.qspring.service.impl;
 
-import com.bot.qspring.entity.AchieveRecord;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.bot.qspring.entity.po.AchieveRecord;
 import com.bot.qspring.mapper.AchieveRecordMapper;
 import com.bot.qspring.service.dbauto.AchieveRecordService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author root

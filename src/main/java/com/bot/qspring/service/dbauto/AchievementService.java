@@ -1,12 +1,11 @@
 package com.bot.qspring.service.dbauto;
 
-import com.bot.qspring.entity.Achievement;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.springframework.stereotype.Service;
+import com.bot.qspring.entity.po.Achievement;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author root

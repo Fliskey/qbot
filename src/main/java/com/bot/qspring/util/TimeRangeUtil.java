@@ -2,7 +2,6 @@ package com.bot.qspring.util;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -14,7 +13,7 @@ public class TimeRangeUtil {
         String dayRegex = "\\d+天";
         Pattern pattern = Pattern.compile(dayRegex);
         Matcher matcher = pattern.matcher("asdvna;lvn1234天");
-        if(matcher.find()){
+        if (matcher.find()) {
             String str = matcher.group().replace("天", "");
             int duringDay = Integer.parseInt(str);
             int a = duringDay;

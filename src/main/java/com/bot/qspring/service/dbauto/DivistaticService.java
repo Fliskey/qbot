@@ -1,12 +1,12 @@
 package com.bot.qspring.service.dbauto;
 
-import com.bot.qspring.entity.Divistatic;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.bot.qspring.entity.po.Divistatic;
 import org.springframework.stereotype.Service;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author root

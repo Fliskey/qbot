@@ -2,8 +2,8 @@ package com.bot.qspring.service;
 
 import cn.hutool.core.util.RandomUtil;
 import com.bot.qspring.dao.EduDao;
-import com.bot.qspring.entity.*;
-import com.bot.qspring.model.Vo.MessageVo;
+import com.bot.qspring.entity.po.*;
+import com.bot.qspring.entity.vo.MessageVo;
 import com.bot.qspring.service.dbauto.EduRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -284,7 +284,7 @@ public class EduService {
         senderService.sendGroup(740093557L, "晚上好！今天bot的晚餐是" + last.getName() + "！=v=");
     }
 
-    @Scheduled(cron = "0 0/10 8-11,14-17,20-22 * * ?")
+    @Scheduled(cron = "0 0/20 8-11,14-17,20-22 * * ?")
     private void autoGoPlaying() {
         StringBuilder builder = new StringBuilder();
         if (!checkFree()) {

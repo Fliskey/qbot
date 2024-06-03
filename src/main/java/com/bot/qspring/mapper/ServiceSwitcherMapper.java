@@ -1,11 +1,11 @@
 package com.bot.qspring.mapper;
 
-import com.bot.qspring.entity.ServiceSwitcher;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.bot.qspring.entity.po.ServiceSwitcher;
 
 /**
  * <p>
- *  Mapper 接口
+ * Mapper 接口
  * </p>
  *
  * @author Fliskey

@@ -1,8 +1,10 @@
 package com.bot.qspring.service;
 
-import com.bot.qspring.entity.*;
+import com.bot.qspring.entity.po.Achievement;
+import com.bot.qspring.entity.po.Admin;
+import com.bot.qspring.entity.po.Replaceword;
+import com.bot.qspring.entity.vo.MessageVo;
 import com.bot.qspring.mapper.*;
-import com.bot.qspring.model.Vo.MessageVo;
 import com.bot.qspring.service.dbauto.AchieveRecordService;
 import com.bot.qspring.service.dbauto.ReplacewordService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,37 +40,35 @@ public class AdminService {
     @Autowired
     private ReplacewordMapper replacewordMapper;
 
-    public boolean isAdmin(Long id){
+    public boolean isAdmin(Long id) {
         Admin admin = adminMapper.selectById(id);
         return admin != null;
     }
 
-    public String handleAdminAll(MessageVo vo){
-        if(!isAdmin(vo.getUser_id())){
+    public String handleAdminAll(MessageVo vo) {
+        if (!isAdmin(vo.getUser_id())) {
             return "您没有管理员权限";
         }
         String[] msgList = vo.getMessage().split(" ");
         String cmd = msgList[1];
 
-        for(int i = 2 ; i < msgList.length ; i++){
+        for (int i = 2; i < msgList.length; i++) {
             String raw = msgList[i];
             Map<String, Object> queryMap = new HashMap<>();
             queryMap.put("word_before", raw);
             List<Replaceword> replaces = replacewordMapper.selectByMap(queryMap);
             //has After
-            if(replaces.size() != 0){
+            if (replaces.size() != 0) {
                 msgList[i] = replaces.get(0).getWordAfter();
             }
         }
-        switch (cmd){
+        switch (cmd) {
             case "give":
-                if(msgList.length == 5){
+                if (msgList.length == 5) {
                     return giveAchievement(Long.valueOf(msgList[2]), Long.valueOf(msgList[3]), msgList[4]);
-                }
-                else if(msgList.length == 6){
+                } else if (msgList.length == 6) {
                     return giveAchievement(Long.valueOf(msgList[2]), Long.valueOf(msgList[3]), msgList[4], msgList[5]);
-                }
-                else{
+                } else {
                     return "参数数量错误";
                 }
             case "加签":
@@ -89,17 +89,17 @@ public class AdminService {
 //
 //    }
 
-    public String giveAchievement(Long GroupId, Long UserId, String achName){
+    public String giveAchievement(Long GroupId, Long UserId, String achName) {
         return giveAchievement(GroupId, UserId, achName, "");
     }
 
-    public String giveAchievement(Long GroupId, Long UserId, String achName, String Detail){
+    public String giveAchievement(Long GroupId, Long UserId, String achName, String Detail) {
         Map<String, Object> queryMap = new HashMap<>();
         queryMap.put("achieve_name", achName);
         List<Achievement> achievements = achievementMapper.selectByMap(queryMap);
-        if(achievements.size() == 0){
+        if (achievements.size() == 0) {
             //没有成就则增加成就
-            if(Detail.equals("")){
+            if (Detail.equals("")) {
                 return "新建成就需要给Detail";
             }
             Achievement achievement = new Achievement();
@@ -111,10 +111,9 @@ public class AdminService {
         }
         Achievement achievement = achievements.get(0);
         String wonString = achievementService.wonAchieve(achievement.getId(), UserId, GroupId);
-        if(wonString.equals("")){
+        if (wonString.equals("")) {
             return "该用户似乎已经获得过该成就，不能重复发放";
-        }
-        else{
+        } else {
             wonString = "获得成就：\n" + wonString;
             senderService.sendGroup(UserId, GroupId, wonString);
             return "成就信息已发送";

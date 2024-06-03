@@ -1,13 +1,12 @@
 package com.bot.qspring.mapper;
 
-import com.bot.qspring.entity.Divination;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.bot.qspring.entity.po.Divination;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
 
 /**
  * <p>
- *  Mapper 接口
+ * Mapper 接口
  * </p>
  *
  * @author root

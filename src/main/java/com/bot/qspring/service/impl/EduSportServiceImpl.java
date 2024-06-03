@@ -1,14 +1,14 @@
 package com.bot.qspring.service.impl;
 
-import com.bot.qspring.entity.EduSport;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.bot.qspring.entity.po.EduSport;
 import com.bot.qspring.mapper.EduSportMapper;
 import com.bot.qspring.service.dbauto.EduSportService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author Fliskey

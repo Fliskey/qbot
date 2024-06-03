@@ -1,14 +1,14 @@
 package com.bot.qspring.service.impl;
 
-import com.bot.qspring.entity.Admin;
-import com.bot.qspring.mapper.AdminMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.stereotype.Service;
+import com.bot.qspring.entity.po.Admin;
+import com.bot.qspring.mapper.AdminMapper;
 import com.bot.qspring.service.dbauto.AdminService;
+import org.springframework.stereotype.Service;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author root

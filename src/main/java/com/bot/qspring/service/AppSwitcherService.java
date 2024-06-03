@@ -1,21 +1,12 @@
 package com.bot.qspring.service;
 
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.lang.Pair;
-import com.bot.qspring.entity.ServiceSwitcher;
-import com.bot.qspring.model.Vo.MessageVo;
+import com.bot.qspring.entity.po.ServiceSwitcher;
+import com.bot.qspring.entity.vo.MessageVo;
 import com.bot.qspring.service.dbauto.ServiceSwitcherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -71,7 +62,7 @@ public class AppSwitcherService {
                 String dayRegex = "\\d+天";
                 Pattern pattern = Pattern.compile(dayRegex);
                 Matcher matcher = pattern.matcher(msg);
-                if(matcher.find()){
+                if (matcher.find()) {
                     String groupStr = matcher.group().replace("天", "");
                     int duringDay = Integer.parseInt(groupStr);
                     serviceSwitcher.setStartDay(LocalDate.now().plusDays(duringDay));

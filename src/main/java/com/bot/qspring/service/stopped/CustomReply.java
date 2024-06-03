@@ -1,6 +1,6 @@
 package com.bot.qspring.service.stopped;
 
-import com.bot.qspring.entity.Customreply;
+import com.bot.qspring.entity.po.Customreply;
 import com.bot.qspring.mapper.CustomreplyMapper;
 import com.bot.qspring.service.dbauto.CustomreplyService;
 import com.google.gson.Gson;
@@ -28,13 +28,13 @@ public class CustomReply {
     JsonElement rules;
 
     //@PostConstruct
-    private void loadRules(){
+    private void loadRules() {
         String jsonStr = "";
         Gson gson = new Gson();
         try {
             File jsonFile = ResourceUtils.getFile("classpath:content/rules.json");
             FileReader fileReader = new FileReader(jsonFile);
-            Reader reader = new InputStreamReader(new FileInputStream(jsonFile),"utf-8");
+            Reader reader = new InputStreamReader(new FileInputStream(jsonFile), "utf-8");
             int ch = 0;
             StringBuffer sb = new StringBuffer();
             while ((ch = reader.read()) != -1) {
@@ -43,7 +43,7 @@ public class CustomReply {
             fileReader.close();
             reader.close();
             jsonStr = sb.toString();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         this.rules = gson.fromJson(jsonStr, JsonElement.class);
@@ -63,22 +63,20 @@ public class CustomReply {
             "一百八一杯\n";
 
 
-    private String checkCustomReply(String msg){
+    private String checkCustomReply(String msg) {
         Map<String, Object> map = new HashMap<>();
         map.put("question", msg);
         List<Customreply> replyList = customreplyMapper.selectByMap(map);
-        if(replyList.isEmpty()){
+        if (replyList.isEmpty()) {
             return "NULL";
-        }
-        else if(replyList.size() != 1){
+        } else if (replyList.size() != 1) {
             //有多个回复
             Random random = new Random();
             int pick_num = random.nextInt(replyList.size());
             Customreply pick = replyList.get(pick_num);
             String reply = pick.getAnswer();
             return reply;
-        }
-        else{
+        } else {
             return replyList.get(0).getAnswer();
         }
     }
@@ -103,27 +101,26 @@ public class CustomReply {
 //        }
 //    }
 
-    private String Study(Long from, String msg){
+    private String Study(Long from, String msg) {
         String[] rawList = msg.split("\r\n");
-        if(rawList.length < 3){
+        if (rawList.length < 3) {
             return "ERROR";
         }
         String type = rawList[1];
 
         String question = rawList[2];
 
-        if(type.equals("查询")){
+        if (type.equals("查询")) {
             Map<String, Object> queryMap = new HashMap<>();
             queryMap.put("question", question);
             List<Customreply> getList = customreplyMapper.selectByMap(queryMap);
-            if(getList.size() == 0){
+            if (getList.size() == 0) {
                 return "未查到相关记录！";
-            }
-            else{
+            } else {
                 StringBuilder builder = new StringBuilder();
                 builder.append("查询到以下回复：\n");
                 int number = 1;
-                for(var each : getList){
+                for (var each : getList) {
                     builder.append(number).append(". ");
                     builder.append(each.getAnswer());
                     builder.append("\n");
@@ -142,9 +139,9 @@ public class CustomReply {
         List<Customreply> getList = customreplyMapper.selectByMap(queryMap);
 
 
-        switch (type){
+        switch (type) {
             case "添加":
-                if(getList.size() == 0){
+                if (getList.size() == 0) {
                     Customreply customreply = new Customreply();
                     customreply.setQuestion(question);
                     customreply.setAnswer(answer);
@@ -152,37 +149,33 @@ public class CustomReply {
                     customreply.setLatestEditor(from);
                     customreplyService.save(customreply);
                     return "保存成功！";
-                }
-                else{
+                } else {
                     return "此规则已存在！";
                 }
             case "修改":
-                if(rawList.length < 5){
+                if (rawList.length < 5) {
                     return "ERROR";
                 }
                 String changeTo = rawList[4];
-                if(getList.size() == 0){
+                if (getList.size() == 0) {
                     return "未查到此规则！";
-                }
-                else{
+                } else {
                     queryMap.put("answer", changeTo);
                     List<Customreply> getList2 = customreplyMapper.selectByMap(queryMap);
-                    if(getList2.size() == 0){
+                    if (getList2.size() == 0) {
                         Customreply customreply = getList.get(0);
                         customreply.setAnswer(changeTo);
                         customreply.setLatestEditor(from);
                         customreplyService.updateById(customreply);
                         return "修改成功！";
-                    }
-                    else{
+                    } else {
                         return "修改撞车，请重试！";
                     }
                 }
             case "删除":
-                if(getList.size() == 0){
+                if (getList.size() == 0) {
                     return "未查到此规则！";
-                }
-                else{
+                } else {
                     customreplyService.removeById(getList.get(0));
                     return "删除成功！";
                 }

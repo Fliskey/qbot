@@ -1,6 +1,6 @@
 package com.bot.qspring.service;
 
-import com.bot.qspring.model.Vo.MessageVo;
+import com.bot.qspring.entity.vo.MessageVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

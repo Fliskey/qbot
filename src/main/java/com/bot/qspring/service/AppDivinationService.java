@@ -1,10 +1,10 @@
 package com.bot.qspring.service;
 
 import com.bot.qspring.dao.DivinationDao;
-import com.bot.qspring.entity.*;
+import com.bot.qspring.entity.po.*;
+import com.bot.qspring.entity.vo.MessageVo;
 import com.bot.qspring.mapper.DivirecordMapper;
 import com.bot.qspring.mapper.SpecialMapper;
-import com.bot.qspring.model.Vo.MessageVo;
 import com.bot.qspring.service.dbauto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
