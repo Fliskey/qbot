@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class NoticeService {
@@ -20,11 +22,11 @@ public class NoticeService {
     @Autowired
     private GroupnoticeMapper groupnoticeMapper;
 
-    public String addNotice(MessageVo vo){
+    public String addNotice(MessageVo vo) {
         String msg = vo.getMessage();
         String[] cmdList = msg.split(" ");
-        try{
-            if(cmdList.length == 1 || cmdList.length > 3){
+        try {
+            if (cmdList.length == 1 || cmdList.length > 3) {
                 return "命令格式错误！通知示例：\n通知 村口集合，水泥自带 持续2天\n(不写则默认为一天)";
             }
             LocalDate startDate = LocalDate.now();
@@ -33,12 +35,14 @@ public class NoticeService {
             //默认持续时间为一天
             LocalDate endDate = LocalDate.now().plusDays(1);
             int addDay = 1;
-            if(cmdList.length == 3){
-                String duringMsg = cmdList[2];
-                int dayIndex = duringMsg.indexOf("天");
-                if(dayIndex != -1){
-                    String addDayChar = duringMsg.substring(dayIndex-1, dayIndex);
-                    addDay = Integer.parseInt(addDayChar);
+            if (cmdList.length == 3) {
+
+                String dayRegex = "\\d+天";
+                Pattern pattern = Pattern.compile(dayRegex);
+                Matcher matcher = pattern.matcher(cmdList[2]);
+                if (matcher.find()) {
+                    String groupStr = matcher.group().replace("天", "");
+                    addDay = Integer.parseInt(groupStr);
                     endDate = endDate.plusDays(addDay);
                 }
             }
@@ -53,18 +57,16 @@ public class NoticeService {
 
             groupnoticeService.saveOrUpdate(groupnotice);
             return "保存成功，持续通知" + addDay + "天";
-        }
-        catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             return "时间格式错误";
         }
     }
 
-    public String delNotice(MessageVo vo){
+    public String delNotice(MessageVo vo) {
         GroupNotice groupNotice = groupnoticeService.getById(vo.getGroup_id());
-        if(groupNotice == null){
+        if (groupNotice == null) {
             return "现无有效通知";
-        }
-        else{
+        } else {
             groupNotice.setIsDeleted(true);
             groupnoticeService.updateById(groupNotice);
             return "删除成功";

@@ -1,6 +1,7 @@
 package com.bot.qspring.model.Vo;
 
 import com.bot.qspring.model.Bo.MemberInfo;
+import com.bot.qspring.model.Bo.Message;
 import com.bot.qspring.model.Bo.Sender;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.ToString;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -23,7 +25,7 @@ public class MessageVo {
 
     private Sender sender;
 
-    private String message;
+    private List<Message> message;
     private Long message_id;
     private Long message_seq;
     private String message_type;
@@ -35,4 +37,8 @@ public class MessageVo {
 
     private Long time;
     private String sub_type;
+
+    public String getMessage(){
+        return message.get(0).getData().getText();
+    }
 }

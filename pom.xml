@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.example</groupId>
     <artifactId>qbot</artifactId>
-    <version>1.2.0b</version>
+    <version>1.2.4</version>
     <name>qbot</name>
     <description>Demo project for Spring Boot</description>
     <properties>
@@ -116,6 +116,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <version>2.3.0.RELEASE</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.11</version>
         </dependency>
     </dependencies>
 

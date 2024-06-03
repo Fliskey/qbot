@@ -2,6 +2,8 @@ package com.bot.qspring.entity;
 
 import java.time.LocalDate;
 import java.io.Serializable;
+import java.time.LocalTime;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -24,6 +26,10 @@ public class ServiceSwitcher implements Serializable {
     private Boolean idStopped;
 
     private LocalDate startDay;
+
+    private LocalTime onTime;
+
+    private LocalTime offTime;
 
 
 }

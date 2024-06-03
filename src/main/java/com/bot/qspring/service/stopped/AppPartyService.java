@@ -163,7 +163,7 @@ public class AppPartyService {
             return "您已成功报名【" + partyName + "】！";
         }
         else{
-            return "您已报名过改活动，请勿重复报名！";
+            return "您已报名过该活动，请勿重复报名！";
         }
     }
 

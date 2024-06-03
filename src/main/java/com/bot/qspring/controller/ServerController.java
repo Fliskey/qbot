@@ -29,4 +29,10 @@ public class ServerController {
         return new Object();
     }
 
+    @PostMapping("/sendVerifyCode")
+    public Object sendVerifyCode(@RequestParam String qq, @RequestParam String code){
+        serverService.sendVerifyCode(qq, code);
+        return new Object();
+    }
+
 }
